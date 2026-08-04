@@ -1,0 +1,17 @@
+{
+  "name": "LactoSegura · Dr. Eduardo Velasco",
+  "short_name": "LactoSegura",
+  "description": "Consulta orientativa de compatibilidad de medicamentos, plantas y homeopatía con la lactancia materna. Consulta siempre el criterio médico.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#FBF5EF",
+  "theme_color": "#FBF5EF",
+  "lang": "es-MX",
+  "categories": ["health", "medical", "education"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

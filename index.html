@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LactoSegura · Dr. Eduardo Velasco</title>
+<meta name="theme-color" content="#FBF5EF">
+<meta name="description" content="Consulta orientativa de compatibilidad de medicamentos, plantas y homeopatía con la lactancia materna. Siempre consulta el criterio médico antes de decidir.">
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --milk:#FBF5EF; --milk-2:#F4EAE1; --paper:#FFFFFF;
+    --ink:#43303A; --ink-soft:#6E5A63; --ink-faint:#9C8890; --line:#EBDDD4;
+    --rose:#C97C8A; --rose-deep:#A85C6C; --rose-tint:#F7E9EC;
+    --l1:#3F9E7E; --l1b:#E4F1EB; --l2:#CF9A2E; --l2b:#F6EDD6;
+    --l3:#D9803F; --l3b:#F8E7D8; --l4:#CB5A5A; --l4b:#F7E0DF;
+    --shadow:0 10px 30px -14px rgba(67,48,58,.28);
+    --serif:Georgia,'Iowan Old Style','Palatino Linotype','Times New Roman',serif;
+    --sans:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--milk); color:var(--ink); font-family:var(--sans);
+    -webkit-font-smoothing:antialiased; line-height:1.5;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  ::selection{background:var(--rose-tint)}
+  a{color:var(--rose-deep)}
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px}
+
+  /* ---- top ---- */
+  header{position:relative;overflow:hidden;background:linear-gradient(180deg,#FBEEF0 0%,var(--milk) 100%)}
+  header .curve{position:absolute;left:0;right:0;bottom:-1px;height:38px;color:var(--milk)}
+  .brand{padding:26px 0 8px;position:relative;z-index:2}
+  .kicker{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--rose-deep);font-weight:700}
+  h1{font-family:var(--serif);font-weight:600;font-size:clamp(30px,7vw,42px);line-height:1.04;margin:8px 0 6px;letter-spacing:-.01em}
+  h1 em{font-style:italic;color:var(--rose-deep)}
+  .by{font-size:13.5px;color:var(--ink-soft);margin:0}
+  .lede{font-size:15px;color:var(--ink-soft);margin:12px 0 0;max-width:56ch}
+
+  /* ---- search ---- */
+  .search-wrap{position:relative;z-index:2;margin:18px 0 6px}
+  .search{display:flex;align-items:center;gap:10px;background:var(--paper);border:1.5px solid var(--line);
+    border-radius:999px;padding:14px 18px;box-shadow:var(--shadow);transition:border-color .18s, box-shadow .18s}
+  .search:focus-within{border-color:var(--rose);box-shadow:0 0 0 4px var(--rose-tint),var(--shadow)}
+  .search svg{flex:0 0 auto;color:var(--rose)}
+  .search input{border:0;outline:0;background:transparent;font-size:16px;width:100%;color:var(--ink);font-family:var(--sans)}
+  .search input::placeholder{color:var(--ink-faint)}
+  .search .clr{border:0;background:var(--milk-2);color:var(--ink-soft);border-radius:999px;width:26px;height:26px;cursor:pointer;font-size:15px;line-height:1;display:none}
+  .search .clr.on{display:inline-flex;align-items:center;justify-content:center}
+
+  /* ---- filters ---- */
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+  .chip{border:1.5px solid var(--line);background:var(--paper);color:var(--ink-soft);
+    border-radius:999px;padding:8px 14px;font-size:13.5px;font-weight:600;cursor:pointer;transition:.15s}
+  .chip .n{color:var(--ink-faint);font-weight:600;margin-left:6px;font-size:12px}
+  .chip.on{background:var(--rose);border-color:var(--rose);color:#fff}
+  .chip.on .n{color:#fff;opacity:.85}
+
+  /* ---- legend ---- */
+  .legend{display:flex;gap:14px;flex-wrap:wrap;margin:14px 0 2px;font-size:12.5px;color:var(--ink-soft)}
+  .legend span{display:inline-flex;align-items:center;gap:7px}
+  .dot{width:12px;height:12px;border-radius:50% 50% 50% 0;transform:rotate(45deg);flex:0 0 auto}
+  .dot.l1{background:var(--l1)}.dot.l2{background:var(--l2)}.dot.l3{background:var(--l3)}.dot.l4{background:var(--l4)}
+
+  /* ---- results ---- */
+  .count{font-size:12.5px;color:var(--ink-faint);margin:16px 2px 8px;letter-spacing:.02em}
+  .list{display:flex;flex-direction:column;gap:11px;padding-bottom:26px}
+  .card{position:relative;background:var(--paper);border:1px solid var(--line);border-radius:18px;
+    padding:15px 16px 15px 18px;cursor:pointer;box-shadow:0 2px 8px -6px rgba(67,48,58,.25);
+    transition:transform .12s, box-shadow .18s, border-color .18s;overflow:hidden;
+    animation:rise .32s both}
+  @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .card:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:#E4D2CB}
+  .card:active{transform:translateY(0)}
+  .card:before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px}
+  .card.l1:before{background:var(--l1)}.card.l2:before{background:var(--l2)}
+  .card.l3:before{background:var(--l3)}.card.l4:before{background:var(--l4)}
+  .card h3{margin:0;font-family:var(--serif);font-weight:600;font-size:18.5px;letter-spacing:-.01em}
+  .card .aka{color:var(--ink-faint);font-size:12.5px;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .card .row{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .card .grp{font-size:12px;color:var(--ink-soft);margin-top:8px}
+  .badge{flex:0 0 auto;display:inline-flex;flex-direction:column;align-items:flex-end;text-align:right}
+  .badge .lvl{font-family:var(--serif);font-style:italic;font-size:15px;font-weight:600}
+  .badge .sub{font-size:10.5px;color:var(--ink-faint);letter-spacing:.02em}
+  .l1 .badge .lvl{color:var(--l1)}.l2 .badge .lvl{color:var(--l2)}
+  .l3 .badge .lvl{color:var(--l3)}.l4 .badge .lvl{color:var(--l4)}
+  .empty{text-align:center;color:var(--ink-soft);padding:40px 10px}
+  .empty b{font-family:var(--serif);font-size:19px;color:var(--ink);display:block;margin-bottom:4px}
+
+  /* ---- disclaimer strip ---- */
+  .strip{display:flex;gap:10px;align-items:flex-start;background:var(--rose-tint);border:1px solid #F0D8DD;
+    border-radius:14px;padding:12px 14px;margin:16px 0 2px;font-size:12.8px;color:var(--rose-deep)}
+  .strip svg{flex:0 0 auto;margin-top:1px}
+  .strip b{color:#8f4a58}
+
+  /* ---- modal ---- */
+  .modal{position:fixed;inset:0;background:rgba(51,36,43,.42);backdrop-filter:blur(3px);
+    display:none;align-items:flex-end;justify-content:center;z-index:50}
+  .modal.open{display:flex;animation:fade .2s}
+  @keyframes fade{from{opacity:0}to{opacity:1}}
+  .sheet{background:var(--milk);width:100%;max-width:640px;max-height:92vh;overflow:auto;
+    border-radius:26px 26px 0 0;box-shadow:0 -18px 50px -20px rgba(67,48,58,.5);
+    animation:slide .28s cubic-bezier(.22,1,.36,1)}
+  @media(min-width:700px){.modal{align-items:center}.sheet{border-radius:24px}}
+  @keyframes slide{from{transform:translateY(20px);opacity:.6}to{transform:none;opacity:1}}
+  .sheet-hd{position:sticky;top:0;background:linear-gradient(180deg,var(--milk) 70%,transparent);
+    padding:16px 20px 8px;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;z-index:2}
+  .sheet-hd .x{border:0;background:var(--milk-2);color:var(--ink-soft);border-radius:999px;width:34px;height:34px;
+    font-size:19px;cursor:pointer;flex:0 0 auto;line-height:1}
+  .m-name{font-family:var(--serif);font-weight:600;font-size:24px;line-height:1.1;letter-spacing:-.01em}
+  .m-aka{color:var(--ink-faint);font-size:13px;margin-top:3px}
+  .sheet-bd{padding:6px 20px 26px}
+  .m-verdict{display:flex;align-items:center;gap:14px;border-radius:16px;padding:14px 16px;margin:6px 0 16px}
+  .m-verdict.l1{background:var(--l1b)}.m-verdict.l2{background:var(--l2b)}
+  .m-verdict.l3{background:var(--l3b)}.m-verdict.l4{background:var(--l4b)}
+  .m-verdict .big{width:46px;height:46px;border-radius:50% 50% 50% 0;transform:rotate(45deg);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center}
+  .m-verdict .big span{transform:rotate(-45deg);color:#fff;font-family:var(--serif);font-weight:700;font-size:20px}
+  .m-verdict.l1 .big{background:var(--l1)}.m-verdict.l2 .big{background:var(--l2)}
+  .m-verdict.l3 .big{background:var(--l3)}.m-verdict.l4 .big{background:var(--l4)}
+  .m-verdict .txt b{font-family:var(--serif);font-style:italic;font-size:19px;display:block}
+  .m-verdict.l1 .txt b{color:var(--l1)}.m-verdict.l2 .txt b{color:#a9791d}
+  .m-verdict.l3 .txt b{color:var(--l3)}.m-verdict.l4 .txt b{color:var(--l4)}
+  .m-verdict .txt small{color:var(--ink-soft);font-size:12.5px}
+  .field{margin:14px 0}
+  .field .lab{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--rose-deep);font-weight:700;margin-bottom:4px}
+  .field .val{font-size:14.5px;color:var(--ink)}
+  .field .val.mono{font-family:ui-monospace,'SF Mono',Menlo,monospace;font-size:14px}
+  .m-note{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-top:8px;font-size:13.5px;color:var(--ink-soft)}
+  .m-safe{display:flex;gap:10px;align-items:flex-start;background:#F1EBE4;border-radius:14px;padding:13px 15px;margin-top:18px;font-size:13px;color:var(--ink-soft)}
+  .m-safe svg{flex:0 0 auto;color:var(--rose)}
+  .m-safe b{color:var(--ink)}
+
+  /* ---- footer ---- */
+  footer{border-top:1px solid var(--line);background:var(--milk-2);padding:22px 0 30px;margin-top:8px}
+  footer p{font-size:12px;color:var(--ink-soft);margin:0 0 8px}
+  footer .name{font-family:var(--serif);color:var(--ink);font-size:14px}
+  .lnk{background:none;border:0;color:var(--rose-deep);font-weight:600;cursor:pointer;padding:0;font-size:12.5px;text-decoration:underline}
+  #install{display:none;margin-top:10px;border:1.5px solid var(--rose);background:var(--paper);color:var(--rose-deep);
+    border-radius:999px;padding:9px 16px;font-weight:600;font-size:13.5px;cursor:pointer}
+  .foot-cols{display:grid;grid-template-columns:1fr;gap:12px;margin-top:16px}
+  @media(min-width:640px){.foot-cols{grid-template-columns:1fr 1.4fr}}
+  .foot-card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+  .foot-h{font-family:var(--serif);font-size:15px;color:var(--ink);margin-bottom:8px}
+  .foot-line{font-size:12px;color:var(--ink-soft);margin:0 0 8px;line-height:1.55}
+  .foot-line b{color:var(--ink)}
+  .foot-card a{color:var(--rose-deep);word-break:break-word}
+  .foot-fine{font-size:11px;color:var(--ink-faint);margin:14px 0 0}
+
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+  .askwrap{margin:2px 0 30px}
+  .askbtn{width:100%;border:1.5px dashed var(--rose);background:var(--rose-tint);color:var(--rose-deep);
+    border-radius:16px;padding:14px 16px;font-weight:700;font-size:14px;cursor:pointer;font-family:var(--sans);line-height:1.4}
+  .askbtn:hover{background:#F3DEE3}
+  .askbtn small{display:block;font-weight:600;color:var(--ink-faint);font-size:12px;margin-top:3px}
+  .ai-text{white-space:pre-wrap;font-size:14.5px;line-height:1.62;color:var(--ink)}
+  .ai-load{color:var(--ink-soft);font-size:13.5px}
+  .ai-err{color:var(--rose-deep);font-size:13.5px}
+  .sugg{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;text-align:left;
+    background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:11px 14px;margin:6px 0;cursor:pointer;font-family:var(--sans)}
+  .sugg:hover{border-color:var(--rose);background:var(--rose-tint)}
+  .sugg span{font-family:var(--serif);font-size:15.5px;color:var(--ink)}
+  .sugg small{color:var(--ink-faint);font-size:12px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap brand">
+    <div class="kicker">Lactancia &amp; medicamentos</div>
+    <h1>Lacto<em>Segura</em></h1>
+    <p class="by">Guía de consulta · Dr. Eduardo Velasco</p>
+    <p class="lede">Busca un medicamento, planta o producto homeopático y conoce, de forma orientativa, su compatibilidad con la lactancia materna.</p>
+
+    <div class="search-wrap">
+      <div class="search">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="2"/><path d="M20 20l-3.2-3.2" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        <input id="q" type="search" inputmode="search" autocomplete="off" placeholder="Ej. paracetamol, hinojo, ibuprofeno…" aria-label="Buscar">
+        <button class="clr" id="clr" aria-label="Borrar">✕</button>
+      </div>
+    </div>
+
+    <div class="filters" id="filters">
+      <button class="chip on" data-cat="all">Todo <span class="n" id="n-all"></span></button>
+      <button class="chip" data-cat="med">Medicamentos <span class="n" id="n-med"></span></button>
+      <button class="chip" data-cat="herb">Plantas &amp; herbolaria <span class="n" id="n-herb"></span></button>
+      <button class="chip" data-cat="homeo">Homeopatía <span class="n" id="n-homeo"></span></button>
+    </div>
+
+    <div class="legend">
+      <span><i class="dot l1"></i>Compatible</span>
+      <span><i class="dot l2"></i>Precaución</span>
+      <span><i class="dot l3"></i>Poco seguro</span>
+      <span><i class="dot l4"></i>Evitar</span>
+    </div>
+  </div>
+  <svg class="curve" viewBox="0 0 1440 38" preserveAspectRatio="none" fill="currentColor"><path d="M0 38 C 360 4 1080 4 1440 38 Z"/></svg>
+</header>
+
+<main class="wrap">
+  <div class="strip">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><path d="M12 3l9 16H3L12 3z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 10v4M12 16.5v.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+    <div>Información <b>educativa y orientativa</b>. No sustituye la valoración de tu médico o pediatra. <b>Consulta siempre el criterio médico antes de tomar una decisión</b>, sobre todo con recién nacidos, prematuros o bebés con problemas de salud.</div>
+  </div>
+
+  <div class="count" id="count"></div>
+  <div class="list" id="list"></div>
+  <div class="askwrap" id="askAI" style="display:none"></div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p class="name">LactoSegura · Dr. Eduardo Velasco</p>
+    <p>Herramienta educativa en español. Los niveles se basan en principios de farmacología de la lactancia (referencias tipo LactMed / Hale / e-lactancia). No es exhaustiva ni reemplaza fuentes oficiales ni la consulta profesional.</p>
+    <p><button class="lnk" id="openAbout">Cómo se usa y avisos</button></p>
+    <button id="install">Instalar en el teléfono</button>
+
+    <div class="foot-cols">
+      <div class="foot-card">
+        <div class="foot-h">Contacto</div>
+        <p class="foot-line"><b>Dr. Eduardo Velasco Sánchez</b></p>
+        <p class="foot-line">Correo: <a href="mailto:eduardovelasco@megared.net.mx">eduardovelasco@megared.net.mx</a></p>
+        <p class="foot-line">Tel./WhatsApp: <a href="tel:+523336416015">+52 33 3641 6015</a></p>
+      </div>
+      <div class="foot-card">
+        <div class="foot-h">Aviso legal</div>
+        <p class="foot-line"><b>Naturaleza del servicio.</b> LactoSegura ofrece información <b>educativa y orientativa</b> sobre la compatibilidad de medicamentos, plantas y productos homeopáticos con la lactancia. <b>No constituye consejo médico</b> ni establece una relación médico‑paciente.</p>
+        <p class="foot-line"><b>Decisión clínica.</b> Toda decisión debe tomarse con la valoración de un profesional de la salud que conozca el caso de la madre y del bebé, la dosis y las circunstancias particulares. <b>Consulta siempre el criterio médico antes de tomar una decisión.</b></p>
+        <p class="foot-line"><b>Limitación de responsabilidad.</b> El contenido puede contener errores u omisiones y no es exhaustivo. El autor no se hace responsable del uso que se dé a esta información. Ante urgencias, acude a servicios médicos.</p>
+        <p class="foot-line"><b>Fuentes.</b> Elaborado con base en literatura de farmacología de la lactancia (p. ej. LactMed/NIH, <i>Medications and Mothers’ Milk</i> de Hale, e‑lactancia). Las marcas comerciales se citan solo con fines de identificación y pertenecen a sus titulares.</p>
+        <p class="foot-line"><b>Privacidad.</b> La app funciona <b>por completo en tu dispositivo</b> y <b>no recopila ni envía datos personales</b>. El asistente de búsqueda opera sin conexión; ninguna consulta sale de tu teléfono.</p>
+        <p class="foot-line"><b>Propiedad intelectual.</b> © <span id="yr"></span> Dr. Eduardo Velasco Sánchez. Todos los derechos reservados. Prohibida su reproducción con fines comerciales sin autorización.</p>
+      </div>
+    </div>
+    <p class="foot-fine">LactoSegura no promueve el uso de ningún producto en particular ni sustituye el etiquetado aprobado ni las guías oficiales vigentes. Versión educativa.</p>
+  </div>
+</footer>
+
+<!-- detail -->
+<div class="modal" id="modal" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div class="sheet-hd">
+      <div><div class="m-name" id="m-name"></div><div class="m-aka" id="m-aka"></div></div>
+      <button class="x" id="m-x" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="sheet-bd" id="m-bd"></div>
+  </div>
+</div>
+
+<!-- about -->
+<div class="modal" id="about" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div class="sheet-hd"><div class="m-name">Cómo se usa</div><button class="x" id="a-x" aria-label="Cerrar">✕</button></div>
+    <div class="sheet-bd">
+      <p style="font-size:14.5px;color:var(--ink-soft)">Escribe el nombre del <b>medicamento</b>, <b>planta</b> o <b>producto homeopático</b>. Cada ficha muestra un nivel orientativo:</p>
+      <div class="field"><div class="val">
+        <div style="display:flex;gap:10px;align-items:center;margin:6px 0"><i class="dot l1"></i><b>Compatible</b> — riesgo muy bajo a dosis habituales.</div>
+        <div style="display:flex;gap:10px;align-items:center;margin:6px 0"><i class="dot l2"></i><b>Precaución</b> — probablemente compatible; vigila al bebé.</div>
+        <div style="display:flex;gap:10px;align-items:center;margin:6px 0"><i class="dot l3"></i><b>Poco seguro</b> — valora una alternativa más segura.</div>
+        <div style="display:flex;gap:10px;align-items:center;margin:6px 0"><i class="dot l4"></i><b>Evitar</b> — no recomendado durante la lactancia.</div>
+      </div></div>
+      <div class="m-safe">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+        <div>Esta guía <b>no diagnostica ni prescribe</b>. La decisión final siempre corresponde a tu médico o pediatra, quien conoce tu caso, el de tu bebé y la dosis exacta. Ante la duda, no suspendas la lactancia sin consultar: muchas veces existe una alternativa compatible.</div>
+      </div>
+      <div class="field" style="margin-top:16px"><div class="lab">Sobre homeopatía y herbolaria</div>
+        <div class="val" style="color:var(--ink-soft);font-size:13.5px">Los productos <b>homeopáticos</b> muy diluidos no suelen contener sustancia activa, por lo que no se espera riesgo farmacológico; sin embargo, <b>no tienen eficacia demostrada</b>. Las <b>tinturas madre</b> sí contienen principio activo y deben tratarse como una planta. Las <b>plantas medicinales</b> no son inofensivas por ser “naturales”: algunas reducen la producción de leche o son tóxicas.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- IA -->
+<div class="modal" id="ai-modal" role="dialog" aria-modal="true">
+  <div class="sheet">
+    <div class="sheet-hd"><div><div class="m-name">Asistente de lactancia</div><div class="m-aka" id="ai-term"></div></div><button class="x" id="ai-close" aria-label="Cerrar">✕</button></div>
+    <div class="sheet-bd" id="ai-out"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= datos ================= */
+/* c: med | herb | homeo · lvl: 1 Compatible · 2 Precaución · 3 Poco seguro · 4 Evitar */
+const LVL={
+  1:{w:"Compatible",s:"Riesgo muy bajo"},
+  2:{w:"Precaución",s:"Vigila al bebé"},
+  3:{w:"Poco seguro",s:"Valora alternativa"},
+  4:{w:"Evitar",s:"No recomendado"}
+};
+const D=[
+/* ---------- Analgésicos / antiinflamatorios ---------- */
+{n:"Paracetamol",aka:"acetaminofén, Tylenol, Tempra, Tafirol",c:"med",g:"Analgésico / antipirético",lvl:1,rid:"8–24%",why:"De los más estudiados y seguros; pasa muy poco a la leche.",watch:"Ninguno relevante a dosis habituales.",alt:""},
+{n:"Ibuprofeno",aka:"Advil, Motrin, Actron",c:"med",g:"Antiinflamatorio (AINE)",lvl:1,rid:"<0.7%",why:"Analgésico/antiinflamatorio de elección; niveles muy bajos.",watch:"Ninguno relevante.",alt:""},
+{n:"Diclofenaco",aka:"Voltaren, Cataflam",c:"med",g:"Antiinflamatorio (AINE)",lvl:1,rid:"—",why:"Poco paso a la leche; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Ketorolaco",aka:"Dolac, Toradol",c:"med",g:"Antiinflamatorio (AINE)",lvl:2,rid:"~0.2%",why:"Uso corto compatible; se prefiere ibuprofeno o paracetamol.",watch:"Sangrados; usar el menor tiempo posible.",alt:"Ibuprofeno, paracetamol."},
+{n:"Naproxeno",aka:"Flanax, Aleve",c:"med",g:"Antiinflamatorio (AINE)",lvl:2,rid:"~3%",why:"Compatible, pero vida media larga; se prefiere ibuprofeno.",watch:"En uso prolongado, vigila somnolencia o sangrado del bebé.",alt:"Ibuprofeno."},
+{n:"Ketoprofeno",aka:"Profenid",c:"med",g:"Antiinflamatorio (AINE)",lvl:1,rid:"—",why:"Bajo paso a la leche.",watch:"Ninguno relevante.",alt:""},
+{n:"Ácido acetilsalicílico",aka:"aspirina, AAS",c:"med",g:"Analgésico (salicilato)",lvl:3,rid:"—",why:"A dosis analgésicas se evita por riesgo teórico de síndrome de Reye y sangrado.",watch:"Prefiere otros analgésicos. Dosis bajas cardiológicas: consulta.",alt:"Paracetamol, ibuprofeno."},
+{n:"Metamizol",aka:"dipirona, Neomelubrina",c:"med",g:"Analgésico / antipirético",lvl:3,rid:"—",why:"Se evita por riesgo (raro) de alteraciones sanguíneas en el bebé.",watch:"Si se usa dosis única, algunos suspenden la lactancia 24–48 h.",alt:"Paracetamol, ibuprofeno."},
+{n:"Tramadol",aka:"Tradol, Prontalgin",c:"med",g:"Opioide",lvl:3,rid:"~2.9%",why:"Se prefiere evitar; posible sedación del bebé.",watch:"Somnolencia, mala succión, respiración lenta.",alt:"Paracetamol/ibuprofeno; opioide solo si es indispensable."},
+{n:"Codeína",aka:"con paracetamol: Tylex",c:"med",g:"Opioide",lvl:4,rid:"—",why:"Riesgo grave en metabolizadores rápidos: sobredosis de morfina en el bebé.",watch:"Evitar. Somnolencia extrema o dificultad para respirar: urgencias.",alt:"Paracetamol, ibuprofeno."},
+{n:"Morfina",aka:"MST, Graten",c:"med",g:"Opioide",lvl:2,rid:"—",why:"Preferida entre opioides para dosis puntuales/hospital.",watch:"Somnolencia y succión débil del bebé.",alt:""},
+{n:"Oxicodona",aka:"OxyContin",c:"med",g:"Opioide",lvl:3,rid:"—",why:"Se prefiere evitar; sedación del bebé.",watch:"Somnolencia, mala alimentación.",alt:"Morfina a dosis baja si es necesario."},
+
+/* ---------- Antibióticos / antimicrobianos ---------- */
+{n:"Amoxicilina",aka:"Amoxil",c:"med",g:"Antibiótico (penicilina)",lvl:1,rid:"~1%",why:"Muy usado y seguro en lactancia.",watch:"Diarrea leve o candidiasis ocasional en el bebé.",alt:""},
+{n:"Amoxicilina/clavulánico",aka:"Augmentin, Clavulin",c:"med",g:"Antibiótico (penicilina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve en el bebé.",alt:""},
+{n:"Ampicilina",aka:"",c:"med",g:"Antibiótico (penicilina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Penicilina",aka:"bencilpenicilina",c:"med",g:"Antibiótico",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Cefalexina",aka:"Keflex",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"~0.5%",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Cefuroxima",aka:"Zinnat",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Ceftriaxona",aka:"Rocephin",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible; poco paso a la leche.",watch:"Diarrea leve.",alt:""},
+{n:"Azitromicina",aka:"Zithromax",c:"med",g:"Antibiótico (macrólido)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Claritromicina",aka:"Klaricid",c:"med",g:"Antibiótico (macrólido)",lvl:2,rid:"—",why:"Probablemente compatible; se prefiere azitromicina.",watch:"Molestias digestivas del bebé.",alt:"Azitromicina."},
+{n:"Eritromicina",aka:"",c:"med",g:"Antibiótico (macrólido)",lvl:2,rid:"—",why:"Compatible; precaución en recién nacidos.",watch:"En recién nacido, riesgo teórico de estenosis pilórica.",alt:"Azitromicina."},
+{n:"Clindamicina",aka:"Dalacin",c:"med",g:"Antibiótico",lvl:2,rid:"~1.7%",why:"Compatible con vigilancia.",watch:"Diarrea con sangre o moco en el bebé: consulta.",alt:""},
+{n:"Metronidazol",aka:"Flagyl",c:"med",g:"Antibiótico / antiparasitario",lvl:2,rid:"~13%",why:"Compatible; con dosis única alta algunos pausan 12–24 h.",watch:"Sabor de la leche, diarrea leve.",alt:""},
+{n:"Nitrofurantoína",aka:"Macrodantina",c:"med",g:"Antibiótico urinario",lvl:2,rid:"—",why:"Compatible salvo casos especiales.",watch:"Evitar en bebé <1 mes o con déficit de G6PD.",alt:"Cefalexina, amoxicilina."},
+{n:"Trimetoprima/sulfametoxazol",aka:"cotrimoxazol, Bactrim",c:"med",g:"Antibiótico",lvl:2,rid:"—",why:"Compatible en bebé sano mayor de 1 mes.",watch:"Evitar con ictericia, prematuro, <1 mes o G6PD.",alt:"Cefalexina."},
+{n:"Ciprofloxacino",aka:"Cipro",c:"med",g:"Antibiótico (quinolona)",lvl:2,rid:"~2.7%",why:"Compatible; se prefiere si no hay otra opción mejor.",watch:"Diarrea; separar de lácteos en el bebé no aplica.",alt:"Cefalosporinas si es posible."},
+{n:"Levofloxacino",aka:"Tavanic",c:"med",g:"Antibiótico (quinolona)",lvl:2,rid:"—",why:"Compatible con vigilancia.",watch:"Molestias digestivas.",alt:""},
+{n:"Doxiciclina",aka:"Vibramicina",c:"med",g:"Antibiótico (tetraciclina)",lvl:2,rid:"—",why:"Ciclos cortos (<3 semanas) compatibles.",watch:"Evitar uso prolongado (teórico en dientes/huesos).",alt:"Azitromicina, amoxicilina."},
+{n:"Gentamicina",aka:"",c:"med",g:"Antibiótico (aminoglucósido)",lvl:1,rid:"—",why:"Muy poca absorción por el bebé.",watch:"Ninguno relevante.",alt:""},
+{n:"Vancomicina",aka:"",c:"med",g:"Antibiótico",lvl:1,rid:"—",why:"Casi no se absorbe por vía oral en el bebé.",watch:"Ninguno relevante.",alt:""},
+{n:"Fluconazol",aka:"Diflucan",c:"med",g:"Antifúngico",lvl:1,rid:"~16%",why:"Compatible; incluso se usa en candidiasis del pecho.",watch:"Ninguno relevante.",alt:""},
+{n:"Nistatina",aka:"Micostatin",c:"med",g:"Antifúngico",lvl:1,rid:"—",why:"Casi no se absorbe; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Clotrimazol",aka:"Canesten",c:"med",g:"Antifúngico (tópico)",lvl:1,rid:"—",why:"Uso tópico compatible.",watch:"Limpia el pecho antes de amamantar si se aplica ahí.",alt:""},
+{n:"Aciclovir",aka:"Zovirax",c:"med",g:"Antiviral",lvl:1,rid:"~1%",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Valaciclovir",aka:"Valtrex",c:"med",g:"Antiviral",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Oseltamivir",aka:"Tamiflu",c:"med",g:"Antiviral (influenza)",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Molestias digestivas.",alt:""},
+
+/* ---------- Alergia / respiratorio ---------- */
+{n:"Loratadina",aka:"Clarityne",c:"med",g:"Antihistamínico",lvl:1,rid:"~1%",why:"Compatible; poco sedante.",watch:"Ninguno relevante.",alt:""},
+{n:"Cetirizina",aka:"Zyrtec, Reactine",c:"med",g:"Antihistamínico",lvl:1,rid:"—",why:"Compatible; poco sedante.",watch:"Somnolencia leve ocasional.",alt:""},
+{n:"Fexofenadina",aka:"Allegra",c:"med",g:"Antihistamínico",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Desloratadina",aka:"Aerius",c:"med",g:"Antihistamínico",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Difenhidramina",aka:"Benadryl",c:"med",g:"Antihistamínico sedante",lvl:2,rid:"—",why:"Uso ocasional compatible; sedante.",watch:"Somnolencia del bebé; en exceso puede bajar la producción.",alt:"Loratadina, cetirizina."},
+{n:"Clorfenamina",aka:"clorfeniramina",c:"med",g:"Antihistamínico sedante",lvl:2,rid:"—",why:"Uso ocasional compatible.",watch:"Somnolencia; irritabilidad.",alt:"Loratadina, cetirizina."},
+{n:"Salbutamol inhalado",aka:"Ventolin",c:"med",g:"Broncodilatador (inhalado)",lvl:1,rid:"—",why:"Inhalado, mínima llegada a la leche.",watch:"Ninguno relevante.",alt:""},
+{n:"Budesonida inhalada",aka:"Pulmicort",c:"med",g:"Corticoide inhalado",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Beclometasona",aka:"",c:"med",g:"Corticoide inhalado/nasal",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Montelukast",aka:"Singulair",c:"med",g:"Antiasmático",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Dextrometorfano",aka:"antitusivo",c:"med",g:"Antitusivo",lvl:2,rid:"—",why:"Uso ocasional probablemente compatible.",watch:"Evita jarabes con alcohol o codeína.",alt:"Medidas locales (miel no en <1 año)."},
+{n:"Pseudoefedrina",aka:"Sudafed, en 'antigripales'",c:"med",g:"Descongestivo",lvl:3,rid:"~4%",why:"Puede reducir la producción de leche, sobre todo al inicio.",watch:"Baja de producción; irritabilidad del bebé.",alt:"Suero nasal, antihistamínico."},
+{n:"Guaifenesina",aka:"expectorante",c:"med",g:"Expectorante",lvl:2,rid:"—",why:"Datos limitados; uso ocasional probablemente compatible.",watch:"Prefiere presentaciones sin alcohol.",alt:""},
+{n:"Ambroxol",aka:"Mucosolvan",c:"med",g:"Mucolítico",lvl:2,rid:"—",why:"Datos limitados; uso ocasional probablemente compatible.",watch:"—",alt:""},
+
+/* ---------- Digestivo ---------- */
+{n:"Omeprazol",aka:"Losec",c:"med",g:"Protector gástrico (IBP)",lvl:1,rid:"—",why:"Compatible; muy poco paso a la leche.",watch:"Ninguno relevante.",alt:""},
+{n:"Pantoprazol",aka:"",c:"med",g:"Protector gástrico (IBP)",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Esomeprazol",aka:"Nexium",c:"med",g:"Protector gástrico (IBP)",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Famotidina",aka:"Pepcid",c:"med",g:"Antiácido (anti-H2)",lvl:1,rid:"—",why:"Compatible; de elección entre los anti-H2.",watch:"Ninguno relevante.",alt:""},
+{n:"Ranitidina",aka:"Zantac",c:"med",g:"Antiácido (anti-H2)",lvl:2,rid:"~1%",why:"Compatible, pero retirada en muchos países por impurezas (NDMA).",watch:"Prefiere famotidina u omeprazol.",alt:"Famotidina, omeprazol."},
+{n:"Ondansetrón",aka:"Zofran",c:"med",g:"Antiemético",lvl:1,rid:"—",why:"Compatible; muy usado.",watch:"Estreñimiento leve.",alt:""},
+{n:"Metoclopramida",aka:"Plasil, Primperan",c:"med",g:"Antiemético / procinético",lvl:2,rid:"~4.7%",why:"Compatible en ciclos cortos; a veces usada para aumentar leche.",watch:"Evita si hay antecedente de depresión; no uses semanas.",alt:"Domperidona (donde esté disponible)."},
+{n:"Domperidona",aka:"Motilium",c:"med",g:"Procinético / galactagogo",lvl:2,rid:"—",why:"Poco paso a la leche; usada para aumentar producción.",watch:"Precaución cardiaca (QT); usar con indicación médica.",alt:""},
+{n:"Loperamida",aka:"Imodium",c:"med",g:"Antidiarreico",lvl:1,rid:"<0.1%",why:"Compatible; casi no pasa a la leche.",watch:"Ninguno relevante.",alt:""},
+{n:"Simeticona",aka:"Flatoril, antiflatulento",c:"med",g:"Antiflatulento",lvl:1,rid:"—",why:"No se absorbe; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Butilhioscina",aka:"Buscapina",c:"med",g:"Antiespasmódico",lvl:1,rid:"—",why:"Uso ocasional compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Sales de rehidratación oral",aka:"Suero, Electrolit",c:"med",g:"Rehidratación",lvl:1,rid:"—",why:"Compatible; recomendable ante diarrea materna.",watch:"Ninguno relevante.",alt:""},
+{n:"Lactulosa",aka:"",c:"med",g:"Laxante osmótico",lvl:1,rid:"—",why:"No se absorbe; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Bisacodilo",aka:"Dulcolax",c:"med",g:"Laxante estimulante",lvl:1,rid:"—",why:"Poco paso a la leche; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Senósidos",aka:"sen, Senokot",c:"med",g:"Laxante (planta)",lvl:2,rid:"—",why:"Compatible; puede ablandar las heces del bebé.",watch:"Heces blandas del bebé si se usa mucho.",alt:"Lactulosa, fibra."},
+{n:"Hidróxido de aluminio/magnesio",aka:"Melox, antiácidos",c:"med",g:"Antiácido",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+
+/* ---------- Cardiovascular / presión ---------- */
+{n:"Metildopa",aka:"Aldomet",c:"med",g:"Antihipertensivo",lvl:1,rid:"—",why:"Clásico y compatible en lactancia.",watch:"Vigila ánimo materno (puede causar decaimiento).",alt:""},
+{n:"Labetalol",aka:"",c:"med",g:"Antihipertensivo (beta-bloq.)",lvl:1,rid:"—",why:"Compatible; de elección.",watch:"Ninguno relevante.",alt:""},
+{n:"Nifedipino",aka:"Adalat",c:"med",g:"Antihipertensivo (calcio)",lvl:1,rid:"—",why:"Compatible; también usado para vasoespasmo del pezón.",watch:"Ninguno relevante.",alt:""},
+{n:"Amlodipino",aka:"Norvasc",c:"med",g:"Antihipertensivo (calcio)",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:"Nifedipino."},
+{n:"Propranolol",aka:"Inderal",c:"med",g:"Beta-bloqueador",lvl:1,rid:"~0.4%",why:"Compatible; de elección entre beta-bloqueadores.",watch:"Ninguno relevante.",alt:""},
+{n:"Atenolol",aka:"Tenormin",c:"med",g:"Beta-bloqueador",lvl:3,rid:"—",why:"Puede acumularse en el bebé.",watch:"Bradicardia, hipoglucemia, decaimiento del bebé.",alt:"Propranolol, labetalol."},
+{n:"Enalapril",aka:"",c:"med",g:"Antihipertensivo (IECA)",lvl:2,rid:"—",why:"Compatible en bebé sano de término; precaución en recién nacido.",watch:"Prematuros/recién nacidos: vigilar presión.",alt:"Metildopa, labetalol, nifedipino."},
+{n:"Captopril",aka:"",c:"med",g:"Antihipertensivo (IECA)",lvl:2,rid:"—",why:"Compatible con precaución en recién nacido.",watch:"—",alt:""},
+{n:"Losartán",aka:"Cozaar",c:"med",g:"Antihipertensivo (ARA-II)",lvl:3,rid:"—",why:"Pocos datos; se prefiere otra opción durante la lactancia.",watch:"—",alt:"Metildopa, labetalol, nifedipino."},
+{n:"Hidroclorotiazida",aka:"HCTZ",c:"med",g:"Diurético",lvl:2,rid:"—",why:"Dosis bajas compatibles; dosis altas pueden reducir la leche.",watch:"Posible baja de producción.",alt:""},
+{n:"Furosemida",aka:"Lasix",c:"med",g:"Diurético",lvl:2,rid:"—",why:"Uso puntual probablemente compatible.",watch:"Puede reducir la producción de leche.",alt:""},
+
+/* ---------- Endocrino / hormonal ---------- */
+{n:"Levotiroxina",aka:"Eutirox, Synthroid",c:"med",g:"Hormona tiroidea",lvl:1,rid:"—",why:"Es la misma hormona natural; compatible y necesaria.",watch:"Ninguno relevante.",alt:""},
+{n:"Metformina",aka:"Glucophage",c:"med",g:"Antidiabético",lvl:1,rid:"~0.5%",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Insulina",aka:"",c:"med",g:"Antidiabético",lvl:1,rid:"—",why:"No pasa a la leche de forma relevante; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Propiltiouracilo",aka:"PTU",c:"med",g:"Antitiroideo",lvl:1,rid:"—",why:"De elección en hipertiroidismo durante la lactancia.",watch:"Control de tiroides del bebé si dosis altas.",alt:""},
+{n:"Metimazol",aka:"tiamazol, Tapazol",c:"med",g:"Antitiroideo",lvl:2,rid:"—",why:"Compatible a dosis ≤20 mg/día.",watch:"Vigila la función tiroidea del bebé.",alt:"Propiltiouracilo."},
+{n:"Prednisona / Prednisolona",aka:"corticoide oral",c:"med",g:"Corticoide sistémico",lvl:1,rid:"—",why:"Compatible; a dosis altas algunos esperan 2–4 h para amamantar.",watch:"Ninguno relevante a dosis usuales.",alt:""},
+{n:"Dexametasona",aka:"",c:"med",g:"Corticoide sistémico",lvl:2,rid:"—",why:"Ciclos cortos compatibles.",watch:"—",alt:"Prednisolona."},
+{n:"Betametasona",aka:"",c:"med",g:"Corticoide sistémico",lvl:2,rid:"—",why:"Ciclos cortos compatibles.",watch:"—",alt:"Prednisolona."},
+{n:"Anticonceptivo de solo progestágeno",aka:"minipíldora, implante, DIU hormonal",c:"med",g:"Anticonceptivo",lvl:1,rid:"—",why:"De elección durante la lactancia.",watch:"Ninguno relevante.",alt:""},
+{n:"Anticonceptivo combinado (con estrógeno)",aka:"píldora combinada",c:"med",g:"Anticonceptivo",lvl:3,rid:"—",why:"El estrógeno puede reducir la producción, sobre todo en los primeros meses.",watch:"Baja de producción de leche.",alt:"Solo progestágeno, DIU, métodos de barrera."},
+{n:"DIU de cobre",aka:"dispositivo intrauterino",c:"med",g:"Anticonceptivo",lvl:1,rid:"—",why:"Sin hormonas; compatible.",watch:"Ninguno relevante.",alt:""},
+
+/* ---------- Neuro / psiquiatría ---------- */
+{n:"Sertralina",aka:"Zoloft, Altruline",c:"med",g:"Antidepresivo (ISRS)",lvl:1,rid:"~0.5%",why:"De elección en lactancia; muy poco paso a la leche.",watch:"Ninguno relevante en general.",alt:""},
+{n:"Paroxetina",aka:"Paxil",c:"med",g:"Antidepresivo (ISRS)",lvl:1,rid:"~1.2%",why:"Compatible; de las preferidas.",watch:"Ninguno relevante en general.",alt:""},
+{n:"Escitalopram",aka:"Lexapro",c:"med",g:"Antidepresivo (ISRS)",lvl:2,rid:"~5%",why:"Probablemente compatible.",watch:"Somnolencia o irritabilidad del bebé.",alt:"Sertralina."},
+{n:"Citalopram",aka:"Celexa",c:"med",g:"Antidepresivo (ISRS)",lvl:2,rid:"~3–5%",why:"Probablemente compatible.",watch:"Somnolencia/irritabilidad.",alt:"Sertralina."},
+{n:"Fluoxetina",aka:"Prozac",c:"med",g:"Antidepresivo (ISRS)",lvl:2,rid:"~5–9%",why:"Compatible, pero vida media larga (puede acumularse).",watch:"Irritabilidad, cólicos, mala ganancia de peso.",alt:"Sertralina."},
+{n:"Venlafaxina",aka:"Effexor",c:"med",g:"Antidepresivo (IRSN)",lvl:2,rid:"~6–8%",why:"Probablemente compatible.",watch:"Somnolencia/irritabilidad.",alt:"Sertralina."},
+{n:"Amitriptilina",aka:"Tryptanol",c:"med",g:"Antidepresivo tricíclico",lvl:2,rid:"~2%",why:"Probablemente compatible a dosis bajas.",watch:"Somnolencia del bebé.",alt:"Sertralina."},
+{n:"Litio",aka:"carbonato de litio",c:"med",g:"Estabilizador del ánimo",lvl:4,rid:"~12–30%",why:"Pasa bastante a la leche y puede intoxicar al bebé.",watch:"Requiere valoración especializada; en general se evita.",alt:"Consulta psiquiatría."},
+{n:"Lorazepam",aka:"Ativan",c:"med",g:"Benzodiacepina",lvl:2,rid:"—",why:"Uso puntual a dosis baja probablemente compatible.",watch:"Somnolencia y succión débil del bebé.",alt:""},
+{n:"Diazepam",aka:"Valium",c:"med",g:"Benzodiacepina",lvl:3,rid:"—",why:"Vida media larga; puede acumularse en el bebé.",watch:"Somnolencia, mala alimentación.",alt:"Lorazepam puntual."},
+{n:"Alprazolam",aka:"Tafil, Xanax",c:"med",g:"Benzodiacepina",lvl:3,rid:"—",why:"Se prefiere evitar; sedación y dependencia.",watch:"Somnolencia; no suspender bruscamente.",alt:"Lorazepam puntual con indicación."},
+{n:"Clonazepam",aka:"Rivotril",c:"med",g:"Benzodiacepina",lvl:3,rid:"—",why:"Vida media larga; usar con precaución.",watch:"Somnolencia, pausas respiratorias en el bebé.",alt:""},
+{n:"Zolpidem",aka:"Stilnox",c:"med",g:"Hipnótico",lvl:2,rid:"~0.02%",why:"Uso puntual probablemente compatible.",watch:"Somnolencia del bebé.",alt:""},
+{n:"Carbamazepina",aka:"Tegretol",c:"med",g:"Antiepiléptico",lvl:2,rid:"~3–5%",why:"Compatible con vigilancia.",watch:"Somnolencia, mala alimentación; controles según médico.",alt:""},
+{n:"Ácido valproico",aka:"valproato, Depakene",c:"med",g:"Antiepiléptico",lvl:2,rid:"~1.4%",why:"Compatible; poco paso a la leche.",watch:"Vigila decaimiento; controles según médico.",alt:""},
+{n:"Lamotrigina",aka:"Lamictal",c:"med",g:"Antiepiléptico",lvl:2,rid:"~9–18%",why:"Compatible con vigilancia (paso variable).",watch:"Sarpullido, somnolencia; controles de niveles según médico.",alt:""},
+{n:"Levetiracetam",aka:"Keppra",c:"med",g:"Antiepiléptico",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Somnolencia del bebé.",alt:""},
+{n:"Fenitoína",aka:"Epamin",c:"med",g:"Antiepiléptico",lvl:2,rid:"—",why:"Compatible con vigilancia.",watch:"Somnolencia, mala succión.",alt:""},
+{n:"Gabapentina",aka:"Neurontin",c:"med",g:"Neuromodulador",lvl:2,rid:"~1.3–3.8%",why:"Probablemente compatible.",watch:"Somnolencia del bebé.",alt:""},
+{n:"Sumatriptán",aka:"Imigran",c:"med",g:"Antimigrañoso",lvl:1,rid:"~3.5%",why:"Compatible; muy poco paso y corta duración.",watch:"Ninguno relevante.",alt:""},
+{n:"Ergotamina",aka:"Cafergot",c:"med",g:"Antimigrañoso (ergot)",lvl:4,rid:"—",why:"Puede reducir la leche y causar síntomas en el bebé.",watch:"Evitar.",alt:"Paracetamol/ibuprofeno, sumatriptán."},
+
+/* ---------- Anticoagulantes / otros ---------- */
+{n:"Heparina",aka:"heparina no fraccionada",c:"med",g:"Anticoagulante",lvl:1,rid:"—",why:"No pasa a la leche (molécula grande); compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Enoxaparina",aka:"Clexane",c:"med",g:"Anticoagulante",lvl:1,rid:"—",why:"No pasa a la leche de forma relevante; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Warfarina",aka:"Coumadin",c:"med",g:"Anticoagulante",lvl:1,rid:"—",why:"Compatible; casi no pasa a la leche.",watch:"Ninguno relevante.",alt:""},
+{n:"Lidocaína",aka:"anestesia local/dental",c:"med",g:"Anestésico local",lvl:1,rid:"—",why:"Compatible; puedes amamantar tras procedimientos dentales.",watch:"Ninguno relevante.",alt:""},
+{n:"Cafeína",aka:"café, té, refrescos de cola",c:"med",g:"Estimulante",lvl:1,rid:"—",why:"Moderada (hasta ~300 mg/día) es compatible.",watch:"Irritabilidad o insomnio del bebé si hay exceso.",alt:"Reducir la cantidad."},
+{n:"Vacunas (la mayoría)",aka:"influenza, COVID, Tdap, hepatitis…",c:"med",g:"Vacunas",lvl:1,rid:"—",why:"Compatibles y recomendadas; incluso benefician al bebé.",watch:"Excepción: fiebre amarilla requiere valoración.",alt:""},
+{n:"Metotrexato",aka:"",c:"med",g:"Inmunosupresor / quimioterapia",lvl:4,rid:"—",why:"Citotóxico; se evita en lactancia.",watch:"Requiere suspender o valoración especializada.",alt:""},
+{n:"Isotretinoína",aka:"Roacután",c:"med",g:"Acné (retinoide oral)",lvl:4,rid:"—",why:"Se evita por riesgo teórico para el bebé.",watch:"Evitar.",alt:"Tratamientos tópicos compatibles."},
+{n:"Amiodarona",aka:"",c:"med",g:"Antiarrítmico",lvl:4,rid:"—",why:"Alto contenido de yodo y acumulación; se evita.",watch:"Requiere valoración especializada.",alt:""},
+{n:"Yodo radiactivo (I-131)",aka:"tratamiento/estudio tiroideo",c:"med",g:"Radiofármaco",lvl:4,rid:"—",why:"Obliga a suspender la lactancia (a veces de forma definitiva).",watch:"Sigue indicaciones de medicina nuclear.",alt:""},
+{n:"Quimioterapia (citotóxicos)",aka:"antineoplásicos",c:"med",g:"Quimioterapia",lvl:4,rid:"—",why:"En general incompatibles con la lactancia.",watch:"Valoración oncológica individual.",alt:""},
+
+/* ---------- Sustancias ---------- */
+{n:"Alcohol",aka:"bebidas alcohólicas",c:"med",g:"Sustancia",lvl:3,rid:"—",why:"Pasa a la leche; en exceso afecta al bebé y a la producción.",watch:"Si bebes, espera ~2 h por copa antes de amamantar; evita el exceso.",alt:"Evitar o consumo mínimo y espaciado."},
+{n:"Tabaco / nicotina",aka:"cigarro, vapeo, parches",c:"med",g:"Sustancia",lvl:3,rid:"—",why:"Mejor no fumar; aun así, la lactancia sigue siendo preferible a no amamantar.",watch:"No fumes cerca del bebé; fuma después de amamantar.",alt:"Reducir/cesar; terapia de reemplazo con apoyo médico."},
+{n:"Cannabis (marihuana)",aka:"THC",c:"med",g:"Sustancia",lvl:4,rid:"—",why:"El THC se concentra y permanece en la leche; se recomienda evitar.",watch:"Somnolencia, menor succión, efectos en el desarrollo.",alt:"Evitar."},
+{n:"Cocaína",aka:"",c:"med",g:"Sustancia",lvl:4,rid:"—",why:"Riesgo grave para el bebé; contraindicada.",watch:"No amamantar bajo su efecto; buscar ayuda.",alt:"Evitar."},
+
+/* ---------- Plantas / herbolaria ---------- */
+{n:"Manzanilla",aka:"chamomilla, camomila",c:"herb",g:"Infusión / planta",lvl:2,rid:"—",why:"Uso moderado suele tolerarse; puede dar alergia.",watch:"Reacciones alérgicas; evita cantidades altas o concentradas.",alt:""},
+{n:"Hinojo",aka:"fennel",c:"herb",g:"Planta / galactagogo popular",lvl:3,rid:"—",why:"Contiene estragol; se desaconsejan cantidades altas o prolongadas.",watch:"En exceso, posibles efectos neurológicos.",alt:"Medidas de apoyo a la lactancia; consulta."},
+{n:"Anís estrella",aka:"badiana",c:"herb",g:"Planta / infusión",lvl:3,rid:"—",why:"Riesgo de contaminación con anís estrella japonés (neurotóxico).",watch:"Evita dárselo al bebé; precaución en la madre.",alt:"Otras infusiones seguras."},
+{n:"Fenogreco",aka:"alholva, fenugreek",c:"herb",g:"Galactagogo popular",lvl:2,rid:"—",why:"Usado para aumentar leche; evidencia débil.",watch:"Baja de glucosa; precaución con diabetes/asma; olor a jarabe de arce.",alt:""},
+{n:"Cardo mariano",aka:"silimarina",c:"herb",g:"Planta / galactagogo popular",lvl:2,rid:"—",why:"Probablemente compatible en cantidades habituales.",watch:"Molestias digestivas.",alt:""},
+{n:"Moringa",aka:"Moringa oleifera",c:"herb",g:"Galactagogo popular",lvl:2,rid:"—",why:"Usada para aumentar leche; datos limitados.",watch:"Usa la hoja (alimento), no extractos concentrados.",alt:""},
+{n:"Jengibre",aka:"ginger",c:"herb",g:"Planta / condimento",lvl:1,rid:"—",why:"En cantidades culinarias, compatible.",watch:"Evita dosis medicinales altas.",alt:""},
+{n:"Cúrcuma",aka:"turmeric",c:"herb",g:"Condimento",lvl:1,rid:"—",why:"En cantidades culinarias, compatible.",watch:"Evita suplementos muy concentrados.",alt:""},
+{n:"Diente de león",aka:"taraxacum",c:"herb",g:"Planta",lvl:1,rid:"—",why:"En cantidades habituales, sin riesgo esperado.",watch:"—",alt:""},
+{n:"Tila",aka:"tilo",c:"herb",g:"Infusión relajante",lvl:2,rid:"—",why:"Uso ocasional suele tolerarse.",watch:"Somnolencia si se abusa.",alt:""},
+{n:"Valeriana",aka:"",c:"herb",g:"Planta relajante",lvl:2,rid:"—",why:"Datos limitados; uso ocasional con precaución.",watch:"Somnolencia del bebé.",alt:""},
+{n:"Equinácea",aka:"echinacea",c:"herb",g:"Planta (inmune)",lvl:2,rid:"—",why:"Datos limitados; uso corto probablemente tolerado.",watch:"Alergias.",alt:""},
+{n:"Ginkgo biloba",aka:"",c:"herb",g:"Suplemento",lvl:2,rid:"—",why:"Datos limitados; precaución (efecto sobre sangrado).",watch:"—",alt:""},
+{n:"Té verde / té negro",aka:"",c:"herb",g:"Infusión con cafeína",lvl:2,rid:"—",why:"Aporta cafeína; con moderación es compatible.",watch:"Irritabilidad del bebé si hay exceso.",alt:"Versiones descafeinadas."},
+{n:"Salvia",aka:"sage",c:"herb",g:"Planta",lvl:3,rid:"—",why:"Puede reducir la producción de leche (se usa para el destete).",watch:"Baja de producción.",alt:"Evitar si quieres mantener la producción."},
+{n:"Perejil (en gran cantidad)",aka:"",c:"herb",g:"Condimento",lvl:3,rid:"—",why:"En cantidades medicinales puede disminuir la leche.",watch:"Baja de producción; como condimento no hay problema.",alt:""},
+{n:"Menta / mentol (en exceso)",aka:"peppermint, hierbabuena",c:"herb",g:"Planta / aceite",lvl:3,rid:"—",why:"En grandes cantidades puede reducir la leche.",watch:"Baja de producción; evita aceites concentrados en el pecho.",alt:""},
+{n:"Regaliz",aka:"orozuz, licorice",c:"herb",g:"Planta",lvl:3,rid:"—",why:"En cantidades altas afecta presión/potasio; se desaconseja.",watch:"—",alt:""},
+{n:"Boldo",aka:"",c:"herb",g:"Planta digestiva",lvl:3,rid:"—",why:"Contiene compuestos potencialmente tóxicos; se desaconseja.",watch:"—",alt:"Manzanilla en moderación."},
+{n:"Epazote",aka:"paico",c:"herb",g:"Condimento / medicinal",lvl:3,rid:"—",why:"Como condimento ocasional, tolerable; en cantidades medicinales es tóxico.",watch:"Evita el uso como 'desparasitante'.",alt:""},
+{n:"Ginseng",aka:"",c:"herb",g:"Suplemento",lvl:3,rid:"—",why:"Datos escasos y efectos hormonales; se prefiere evitar.",watch:"—",alt:""},
+{n:"Hierba de San Juan",aka:"hipérico, St. John's Wort",c:"herb",g:"Planta antidepresiva",lvl:3,rid:"—",why:"Muchas interacciones y fotosensibilidad; se prefiere evitar.",watch:"Cólicos/somnolencia; interfiere con otros fármacos.",alt:"Consulta por un antidepresivo compatible (p. ej. sertralina)."},
+{n:"Aloe vera (vía oral)",aka:"sábila ingerida",c:"herb",g:"Planta (uso oral)",lvl:3,rid:"—",why:"El látex es laxante potente; se desaconseja por vía oral.",watch:"Diarrea; el uso en la piel es distinto.",alt:""},
+{n:"Ruda",aka:"",c:"herb",g:"Planta",lvl:4,rid:"—",why:"Tóxica y abortiva; contraindicada.",watch:"Evitar por completo.",alt:""},
+{n:"Kava",aka:"kava kava",c:"herb",g:"Planta relajante",lvl:4,rid:"—",why:"Riesgo de daño hepático; contraindicada.",watch:"Evitar.",alt:""},
+{n:"Efedra",aka:"ma huang, ephedra",c:"herb",g:"Planta estimulante",lvl:4,rid:"—",why:"Estimulante peligroso; puede reducir la leche y dañar al bebé.",watch:"Evitar.",alt:""},
+
+/* ---------- Homeopatía ---------- */
+{n:"Homeopatía (en general)",aka:"glóbulos, diluciones altas",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Las diluciones altas (30CH, etc.) no suelen contener sustancia activa, por lo que no se espera riesgo farmacológico.",watch:"No tiene eficacia demostrada; no reemplaza tratamientos necesarios.",alt:"Consulta si el síntoma requiere tratamiento real."},
+{n:"Tinturas madre",aka:"TM, extractos homeopáticos concentrados",c:"homeo",g:"Homeopatía (baja dilución)",lvl:3,rid:"—",why:"Sí contienen principio activo de la planta; deben tratarse como herbolaria.",watch:"Riesgos según la planta de origen (algunas reducen la leche o son tóxicas).",alt:"Revisa la planta correspondiente en esta guía."},
+{n:"Árnica homeopática",aka:"Arnica montana (diluida)",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Muy diluida, sin riesgo esperado.",watch:"No la apliques sobre el pezón; el árnica no diluida no debe ingerirse.",alt:""},
+{n:"Chamomilla (homeopática)",aka:"manzanilla diluida",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Pulsatilla (homeopática)",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Calcarea carbonica",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Silicea",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Ricinus communis (homeopático)",aka:"para 'aumentar leche'",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta no hay riesgo; en baja dilución (tintura) trátalo como planta.",watch:"Verifica la dilución; sin eficacia demostrada.",alt:""},
+{n:"Dicloxacilina",aka:"Posipen, Dicloxin",c:"med",g:"Antibiótico (penicilina)",lvl:1,rid:"—",why:"Compatible; muy usada en México.",watch:"Diarrea leve.",alt:""},
+{n:"Cefixima",aka:"Denvar, Novacef",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Cefaclor",aka:"Ceclor",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Cefadroxilo",aka:"Duracef",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Cefotaxima",aka:"Claforan",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Ceftazidima",aka:"Fortum",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Cefepime",aka:"Maxipime",c:"med",g:"Antibiótico (cefalosporina)",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Meropenem",aka:"Merrem",c:"med",g:"Antibiótico (carbapenémico)",lvl:1,rid:"—",why:"Compatible; poca absorción por el bebé.",watch:"Diarrea leve.",alt:""},
+{n:"Piperacilina/tazobactam",aka:"Tazocin",c:"med",g:"Antibiótico",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve.",alt:""},
+{n:"Amikacina",aka:"",c:"med",g:"Antibiótico (aminoglucósido)",lvl:1,rid:"—",why:"Poca absorción por el bebé; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Trimetoprima",aka:"",c:"med",g:"Antibiótico urinario",lvl:2,rid:"—",why:"Compatible en bebé sano >1 mes.",watch:"Evitar en <1 mes o déficit de folato.",alt:""},
+{n:"Fosfomicina",aka:"Monurol",c:"med",g:"Antibiótico urinario",lvl:1,rid:"—",why:"Dosis única compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Norfloxacino",aka:"Noroxin",c:"med",g:"Antibiótico (quinolona)",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Molestias digestivas.",alt:"Cefalosporinas."},
+{n:"Ofloxacino",aka:"",c:"med",g:"Antibiótico (quinolona)",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Molestias digestivas.",alt:""},
+{n:"Moxifloxacino",aka:"Avelox",c:"med",g:"Antibiótico (quinolona)",lvl:2,rid:"—",why:"Datos limitados; usar si es necesario.",watch:"Molestias digestivas.",alt:""},
+{n:"Rifampicina",aka:"Rifadin",c:"med",g:"Antituberculoso",lvl:2,rid:"—",why:"Compatible.",watch:"Puede teñir la leche de naranja (inocuo).",alt:""},
+{n:"Isoniazida",aka:"",c:"med",g:"Antituberculoso",lvl:2,rid:"—",why:"Compatible; se suele dar vitamina B6.",watch:"Vigila decaimiento; da B6 a mamá y bebé según médico.",alt:""},
+{n:"Etambutol",aka:"",c:"med",g:"Antituberculoso",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Pirazinamida",aka:"",c:"med",g:"Antituberculoso",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"—",alt:""},
+{n:"Cloranfenicol",aka:"Chloromycetin",c:"med",g:"Antibiótico",lvl:3,rid:"—",why:"Se prefiere evitar (riesgo sanguíneo teórico).",watch:"Palidez, rechazo del alimento.",alt:"Otros antibióticos."},
+{n:"Tetraciclina",aka:"",c:"med",g:"Antibiótico (tetraciclina)",lvl:2,rid:"—",why:"Ciclos cortos compatibles; evita uso prolongado.",watch:"Prefiere otras opciones si es prolongado.",alt:"Amoxicilina, azitromicina."},
+{n:"Minociclina",aka:"",c:"med",g:"Antibiótico (tetraciclina)",lvl:2,rid:"—",why:"Ciclos cortos; evita uso prolongado.",watch:"—",alt:""},
+{n:"Linezolid",aka:"Zyvox",c:"med",g:"Antibiótico",lvl:2,rid:"—",why:"Probablemente compatible con vigilancia.",watch:"Vómito, diarrea del bebé.",alt:""},
+{n:"Tinidazol",aka:"Fasigyn",c:"med",g:"Antiparasitario",lvl:2,rid:"—",why:"Como metronidazol; con dosis alta algunos pausan 12–24 h.",watch:"Sabor de la leche, diarrea leve.",alt:""},
+{n:"Secnidazol",aka:"Solosec, Unidazol",c:"med",g:"Antiparasitario",lvl:2,rid:"—",why:"Dosis única; algunos pausan 12–24 h.",watch:"Diarrea leve.",alt:""},
+{n:"Albendazol",aka:"Zentel, Vermin",c:"med",g:"Antiparasitario",lvl:2,rid:"—",why:"Dosis única/corta compatible.",watch:"Poca absorción; molestias leves.",alt:""},
+{n:"Mebendazol",aka:"Vermox",c:"med",g:"Antiparasitario",lvl:1,rid:"—",why:"Casi no se absorbe; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Nitazoxanida",aka:"Daxon, Colufase",c:"med",g:"Antiparasitario",lvl:2,rid:"—",why:"Datos limitados; uso corto probablemente compatible.",watch:"Molestias digestivas.",alt:""},
+{n:"Pamoato de pirantel",aka:"Combantrin",c:"med",g:"Antiparasitario",lvl:1,rid:"—",why:"Casi no se absorbe; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Ivermectina",aka:"Ivexterm",c:"med",g:"Antiparasitario",lvl:2,rid:"—",why:"Dosis única probablemente compatible.",watch:"Molestias leves.",alt:""},
+{n:"Praziquantel",aka:"",c:"med",g:"Antiparasitario",lvl:2,rid:"—",why:"Uso puntual probablemente compatible.",watch:"—",alt:""},
+{n:"Itraconazol",aka:"Sporanox",c:"med",g:"Antifúngico",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"—",alt:"Fluconazol."},
+{n:"Ketoconazol (oral)",aka:"Nizoral oral",c:"med",g:"Antifúngico",lvl:3,rid:"—",why:"Vía oral: riesgo hepático; se prefiere evitar.",watch:"Prefiere fluconazol/itraconazol.",alt:"Fluconazol."},
+{n:"Terbinafina",aka:"Lamisil",c:"med",g:"Antifúngico",lvl:2,rid:"—",why:"Probablemente compatible; datos limitados.",watch:"—",alt:""},
+{n:"Griseofulvina",aka:"",c:"med",g:"Antifúngico",lvl:3,rid:"—",why:"Datos escasos; se prefiere evitar.",watch:"—",alt:"Terbinafina, fluconazol."},
+{n:"Miconazol (tópico)",aka:"Daktarin",c:"med",g:"Antifúngico tópico",lvl:1,rid:"—",why:"Uso tópico compatible.",watch:"Limpia el pecho si lo aplicas ahí.",alt:""},
+{n:"Famciclovir",aka:"Famvir",c:"med",g:"Antiviral",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Ninguno relevante.",alt:"Valaciclovir, aciclovir."},
+{n:"Meloxicam",aka:"Mobic",c:"med",g:"Antiinflamatorio (AINE)",lvl:2,rid:"—",why:"Probablemente compatible; se prefiere ibuprofeno.",watch:"—",alt:"Ibuprofeno."},
+{n:"Piroxicam",aka:"Feldene",c:"med",g:"Antiinflamatorio (AINE)",lvl:2,rid:"—",why:"Vida media larga; se prefiere ibuprofeno.",watch:"—",alt:"Ibuprofeno."},
+{n:"Celecoxib",aka:"Celebrex",c:"med",g:"Antiinflamatorio (COX-2)",lvl:1,rid:"—",why:"Compatible; muy poco paso a la leche.",watch:"Ninguno relevante.",alt:""},
+{n:"Etoricoxib",aka:"Arcoxia",c:"med",g:"Antiinflamatorio (COX-2)",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:"Ibuprofeno, celecoxib."},
+{n:"Nimesulida",aka:"",c:"med",g:"Antiinflamatorio (AINE)",lvl:3,rid:"—",why:"Se prefiere evitar (perfil de seguridad).",watch:"—",alt:"Ibuprofeno, paracetamol."},
+{n:"Indometacina",aka:"",c:"med",g:"Antiinflamatorio (AINE)",lvl:2,rid:"—",why:"Uso corto probablemente compatible.",watch:"—",alt:"Ibuprofeno."},
+{n:"Colchicina",aka:"",c:"med",g:"Antigotoso",lvl:2,rid:"—",why:"Compatible con vigilancia.",watch:"Diarrea del bebé.",alt:""},
+{n:"Alopurinol",aka:"Zyloprim",c:"med",g:"Antigotoso",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"—",alt:""},
+{n:"Metocarbamol",aka:"",c:"med",g:"Relajante muscular",lvl:2,rid:"—",why:"Uso puntual probablemente compatible.",watch:"Somnolencia del bebé.",alt:""},
+{n:"Ciclobenzaprina",aka:"",c:"med",g:"Relajante muscular",lvl:2,rid:"—",why:"Datos limitados; uso corto con precaución.",watch:"Somnolencia.",alt:""},
+{n:"Carisoprodol",aka:"Somacid",c:"med",g:"Relajante muscular",lvl:3,rid:"—",why:"Sedante; se prefiere evitar.",watch:"Somnolencia marcada del bebé.",alt:"Paracetamol/ibuprofeno + medidas físicas."},
+{n:"Baclofeno",aka:"Lioresal",c:"med",g:"Relajante muscular",lvl:2,rid:"—",why:"Poco paso a la leche; probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Tizanidina",aka:"Sirdalud",c:"med",g:"Relajante muscular",lvl:2,rid:"—",why:"Datos limitados; precaución por sedación.",watch:"Somnolencia.",alt:""},
+{n:"Hidroxicloroquina",aka:"Plaquenil",c:"med",g:"Antirreumático",lvl:1,rid:"—",why:"Compatible; se usa en lupus/artritis en lactancia.",watch:"Ninguno relevante.",alt:""},
+{n:"Sulfasalazina",aka:"Azulfidine",c:"med",g:"Antiinflamatorio intestinal",lvl:2,rid:"—",why:"Compatible con vigilancia.",watch:"Diarrea con sangre; evita en G6PD.",alt:""},
+{n:"Mesalazina",aka:"Salofalk, Pentasa",c:"med",g:"Antiinflamatorio intestinal",lvl:1,rid:"—",why:"Compatible.",watch:"Diarrea leve ocasional.",alt:""},
+{n:"Azatioprina",aka:"Imuran",c:"med",g:"Inmunosupresor",lvl:2,rid:"—",why:"Compatible según la mayoría de guías.",watch:"Controles según médico.",alt:""},
+{n:"Ciclosporina",aka:"Sandimmun",c:"med",g:"Inmunosupresor",lvl:2,rid:"—",why:"Probablemente compatible con vigilancia.",watch:"Controles según médico.",alt:""},
+{n:"Tacrolimus",aka:"Prograf",c:"med",g:"Inmunosupresor",lvl:2,rid:"—",why:"Probablemente compatible; poco paso.",watch:"Controles según médico.",alt:""},
+{n:"Micofenolato",aka:"Cellcept",c:"med",g:"Inmunosupresor",lvl:4,rid:"—",why:"Se evita durante la lactancia.",watch:"Valoración especializada.",alt:""},
+{n:"Leflunomida",aka:"Arava",c:"med",g:"Antirreumático",lvl:4,rid:"—",why:"Se evita (persistencia prolongada).",watch:"Valoración especializada.",alt:""},
+{n:"Adalimumab",aka:"Humira",c:"med",g:"Biológico (anti-TNF)",lvl:1,rid:"—",why:"Molécula grande; paso mínimo. Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Etanercept",aka:"Enbrel",c:"med",g:"Biológico (anti-TNF)",lvl:1,rid:"—",why:"Paso mínimo a la leche; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Infliximab",aka:"Remicade",c:"med",g:"Biológico (anti-TNF)",lvl:1,rid:"—",why:"Paso mínimo; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Certolizumab",aka:"Cimzia",c:"med",g:"Biológico (anti-TNF)",lvl:1,rid:"—",why:"Prácticamente no pasa a la leche; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Duloxetina",aka:"Cymbalta",c:"med",g:"Antidepresivo (IRSN)",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Somnolencia/irritabilidad.",alt:"Sertralina."},
+{n:"Mirtazapina",aka:"Remeron",c:"med",g:"Antidepresivo",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Somnolencia, aumento de peso.",alt:""},
+{n:"Bupropión",aka:"Wellbutrin",c:"med",g:"Antidepresivo",lvl:2,rid:"—",why:"Compatible con precaución; puede reducir la leche.",watch:"Irritabilidad; convulsiones (raro).",alt:"Sertralina."},
+{n:"Trazodona",aka:"",c:"med",g:"Antidepresivo / sueño",lvl:2,rid:"—",why:"Uso puntual probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Fluvoxamina",aka:"Luvox",c:"med",g:"Antidepresivo (ISRS)",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Somnolencia/irritabilidad.",alt:"Sertralina."},
+{n:"Clomipramina",aka:"Anafranil",c:"med",g:"Antidepresivo tricíclico",lvl:2,rid:"—",why:"Probablemente compatible a dosis baja.",watch:"Somnolencia.",alt:"Sertralina."},
+{n:"Nortriptilina",aka:"",c:"med",g:"Antidepresivo tricíclico",lvl:1,rid:"—",why:"Compatible; poco paso.",watch:"Ninguno relevante.",alt:""},
+{n:"Imipramina",aka:"Tofranil",c:"med",g:"Antidepresivo tricíclico",lvl:2,rid:"—",why:"Probablemente compatible a dosis baja.",watch:"Somnolencia.",alt:""},
+{n:"Haloperidol",aka:"Haldol",c:"med",g:"Antipsicótico",lvl:2,rid:"—",why:"Probablemente compatible con vigilancia.",watch:"Somnolencia, rigidez.",alt:""},
+{n:"Risperidona",aka:"Risperdal",c:"med",g:"Antipsicótico",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Somnolencia; puede subir prolactina.",alt:""},
+{n:"Olanzapina",aka:"Zyprexa",c:"med",g:"Antipsicótico",lvl:2,rid:"—",why:"Compatible entre los preferidos.",watch:"Somnolencia.",alt:""},
+{n:"Quetiapina",aka:"Seroquel",c:"med",g:"Antipsicótico",lvl:2,rid:"—",why:"Compatible; poco paso a la leche.",watch:"Somnolencia.",alt:""},
+{n:"Aripiprazol",aka:"Abilify",c:"med",g:"Antipsicótico",lvl:2,rid:"—",why:"Probablemente compatible; puede reducir la leche.",watch:"Baja de producción; somnolencia.",alt:""},
+{n:"Clozapina",aka:"Leponex",c:"med",g:"Antipsicótico",lvl:4,rid:"—",why:"Se evita por riesgo sanguíneo del bebé.",watch:"Valoración especializada.",alt:""},
+{n:"Ziprasidona",aka:"Geodon",c:"med",g:"Antipsicótico",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Topiramato",aka:"Topamax",c:"med",g:"Antiepiléptico / migraña",lvl:2,rid:"—",why:"Probablemente compatible con vigilancia.",watch:"Somnolencia, diarrea, poca ganancia de peso.",alt:""},
+{n:"Oxcarbazepina",aka:"Trileptal",c:"med",g:"Antiepiléptico",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Pregabalina",aka:"Lyrica",c:"med",g:"Neuromodulador",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Zopiclona",aka:"Imovane",c:"med",g:"Hipnótico",lvl:2,rid:"—",why:"Uso puntual probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Melatonina",aka:"",c:"med",g:"Sueño (hormona)",lvl:2,rid:"—",why:"Probablemente compatible; presente de forma natural en la leche.",watch:"—",alt:""},
+{n:"Rizatriptán",aka:"Maxalt",c:"med",g:"Antimigrañoso",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"Ninguno relevante.",alt:"Sumatriptán."},
+{n:"Flunarizina",aka:"Sibelium",c:"med",g:"Antimigrañoso",lvl:3,rid:"—",why:"Vida media muy larga; se prefiere evitar.",watch:"Somnolencia.",alt:"Propranolol, topiramato."},
+{n:"Betahistina",aka:"Serc",c:"med",g:"Antivertiginoso",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:""},
+{n:"Cinarizina",aka:"Stugeron",c:"med",g:"Antivertiginoso",lvl:2,rid:"—",why:"Uso ocasional; puede dar somnolencia.",watch:"Somnolencia.",alt:""},
+{n:"Metoprolol",aka:"Seloken, Lopresor",c:"med",g:"Beta-bloqueador",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante en general.",alt:""},
+{n:"Carvedilol",aka:"Dilatrend",c:"med",g:"Beta-bloqueador",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"Vigila decaimiento del bebé.",alt:"Propranolol, metoprolol."},
+{n:"Bisoprolol",aka:"Concor",c:"med",g:"Beta-bloqueador",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"—",alt:"Metoprolol, propranolol."},
+{n:"Verapamilo",aka:"Isoptin",c:"med",g:"Antihipertensivo (calcio)",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Diltiazem",aka:"Angiotrofin",c:"med",g:"Antihipertensivo (calcio)",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"—",alt:"Nifedipino."},
+{n:"Hidralazina",aka:"Apresolina",c:"med",g:"Antihipertensivo",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Clonidina",aka:"Catapresan",c:"med",g:"Antihipertensivo",lvl:3,rid:"—",why:"Puede reducir la leche; se prefiere evitar.",watch:"Baja de producción; somnolencia.",alt:"Metildopa, labetalol."},
+{n:"Prazosina",aka:"Minipres",c:"med",g:"Antihipertensivo (alfa)",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:""},
+{n:"Espironolactona",aka:"Aldactone",c:"med",g:"Diurético",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"—",alt:""},
+{n:"Indapamida",aka:"Natrilix",c:"med",g:"Diurético",lvl:2,rid:"—",why:"Puede reducir la leche a dosis altas.",watch:"Posible baja de producción.",alt:""},
+{n:"Clortalidona",aka:"Higroton",c:"med",g:"Diurético",lvl:2,rid:"—",why:"Puede reducir la leche a dosis altas.",watch:"Posible baja de producción.",alt:""},
+{n:"Digoxina",aka:"Lanoxin",c:"med",g:"Cardiotónico",lvl:1,rid:"—",why:"Compatible; poco paso a la leche.",watch:"Ninguno relevante.",alt:""},
+{n:"Valsartán",aka:"Diovan",c:"med",g:"Antihipertensivo (ARA-II)",lvl:3,rid:"—",why:"Datos escasos; se prefiere otra opción.",watch:"—",alt:"Metildopa, labetalol, nifedipino."},
+{n:"Telmisartán",aka:"Micardis",c:"med",g:"Antihipertensivo (ARA-II)",lvl:3,rid:"—",why:"Datos escasos; se prefiere otra opción.",watch:"—",alt:"Metildopa, labetalol, nifedipino."},
+{n:"Candesartán",aka:"Atacand",c:"med",g:"Antihipertensivo (ARA-II)",lvl:3,rid:"—",why:"Datos escasos; se prefiere otra opción.",watch:"—",alt:"Metildopa, labetalol."},
+{n:"Ramipril",aka:"Tritace",c:"med",g:"Antihipertensivo (IECA)",lvl:3,rid:"—",why:"Menos datos que enalapril/captopril.",watch:"Precaución en recién nacido.",alt:"Enalapril, captopril."},
+{n:"Lisinopril",aka:"Zestril",c:"med",g:"Antihipertensivo (IECA)",lvl:3,rid:"—",why:"Menos datos; se prefiere enalapril/captopril.",watch:"Precaución en recién nacido.",alt:"Enalapril, captopril."},
+{n:"Clopidogrel",aka:"Plavix",c:"med",g:"Antiagregante",lvl:3,rid:"—",why:"Datos escasos; se prefiere evitar salvo necesidad.",watch:"Vigila sangrados.",alt:""},
+{n:"Rivaroxabán",aka:"Xarelto",c:"med",g:"Anticoagulante oral",lvl:3,rid:"—",why:"Datos escasos; se prefieren heparinas.",watch:"",alt:"Enoxaparina, warfarina."},
+{n:"Apixabán",aka:"Eliquis",c:"med",g:"Anticoagulante oral",lvl:3,rid:"—",why:"Datos escasos; se prefieren heparinas.",watch:"",alt:"Enoxaparina, warfarina."},
+{n:"Dabigatrán",aka:"Pradaxa",c:"med",g:"Anticoagulante oral",lvl:3,rid:"—",why:"Datos escasos; se prefieren heparinas.",watch:"",alt:"Enoxaparina, warfarina."},
+{n:"Sotalol",aka:"",c:"med",g:"Antiarrítmico",lvl:2,rid:"—",why:"Compatible con vigilancia.",watch:"Vigila decaimiento del bebé.",alt:""},
+{n:"Atorvastatina",aka:"Lipitor",c:"med",g:"Estatina (colesterol)",lvl:3,rid:"—",why:"Se suele evitar; el colesterol es importante para el bebé.",watch:"Puede suspenderse durante la lactancia.",alt:"Dieta; consulta."},
+{n:"Rosuvastatina",aka:"Crestor",c:"med",g:"Estatina (colesterol)",lvl:3,rid:"—",why:"Se suele evitar durante la lactancia.",watch:"",alt:"Dieta; consulta."},
+{n:"Simvastatina",aka:"Zocor",c:"med",g:"Estatina (colesterol)",lvl:3,rid:"—",why:"Se suele evitar durante la lactancia.",watch:"",alt:""},
+{n:"Pravastatina",aka:"Pravacol",c:"med",g:"Estatina (colesterol)",lvl:2,rid:"—",why:"Menos paso a la leche; si es imprescindible, la preferida.",watch:"",alt:""},
+{n:"Ezetimiba",aka:"Zetia",c:"med",g:"Hipolipemiante",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"",alt:""},
+{n:"Fenofibrato",aka:"Lipidil",c:"med",g:"Hipolipemiante",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"",alt:""},
+{n:"Glibenclamida",aka:"Daonil",c:"med",g:"Antidiabético (sulfonilurea)",lvl:2,rid:"—",why:"Probablemente compatible; vigila glucosa del bebé.",watch:"Hipoglucemia (raro).",alt:"Metformina, insulina."},
+{n:"Glimepirida",aka:"Amaryl",c:"med",g:"Antidiabético (sulfonilurea)",lvl:2,rid:"—",why:"Probablemente compatible; vigila glucosa.",watch:"Hipoglucemia (raro).",alt:"Metformina, insulina."},
+{n:"Sitagliptina",aka:"Januvia",c:"med",g:"Antidiabético (DPP-4)",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:"Metformina, insulina."},
+{n:"Linagliptina",aka:"Trayenta",c:"med",g:"Antidiabético (DPP-4)",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:"Metformina, insulina."},
+{n:"Empagliflozina",aka:"Jardiance",c:"med",g:"Antidiabético (SGLT2)",lvl:3,rid:"—",why:"Sin datos; se prefiere evitar.",watch:"—",alt:"Metformina, insulina."},
+{n:"Dapagliflozina",aka:"Forxiga",c:"med",g:"Antidiabético (SGLT2)",lvl:3,rid:"—",why:"Sin datos; se prefiere evitar.",watch:"—",alt:"Metformina, insulina."},
+{n:"Pioglitazona",aka:"Actos",c:"med",g:"Antidiabético",lvl:3,rid:"—",why:"Sin datos; se prefiere evitar.",watch:"—",alt:"Metformina, insulina."},
+{n:"Liraglutida",aka:"Victoza, Saxenda",c:"med",g:"Antidiabético / peso (GLP-1)",lvl:3,rid:"—",why:"Sin datos suficientes; se prefiere evitar.",watch:"—",alt:"Metformina, insulina."},
+{n:"Hidrocortisona",aka:"",c:"med",g:"Corticoide",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Metilprednisolona",aka:"Solu-Medrol",c:"med",g:"Corticoide",lvl:2,rid:"—",why:"Ciclos cortos compatibles; en dosis altas esperar 2–4 h.",watch:"—",alt:"Prednisolona."},
+{n:"Medroxiprogesterona",aka:"Depo-Provera",c:"med",g:"Anticonceptivo (progestágeno)",lvl:2,rid:"—",why:"Compatible; algunos esperan a que la leche esté establecida.",watch:"Baja de producción rara.",alt:""},
+{n:"Estradiol",aka:"",c:"med",g:"Estrógeno",lvl:3,rid:"—",why:"Puede reducir la producción de leche.",watch:"Baja de producción.",alt:"Solo progestágeno."},
+{n:"Cabergolina",aka:"Dostinex",c:"med",g:"Inhibidor de prolactina",lvl:4,rid:"—",why:"Corta/suprime la producción de leche.",watch:"Se usa para dejar de amamantar, no durante.",alt:""},
+{n:"Bromocriptina",aka:"Parlodel",c:"med",g:"Inhibidor de prolactina",lvl:4,rid:"—",why:"Suprime la leche; se evita si deseas amamantar.",watch:"—",alt:""},
+{n:"Tamoxifeno",aka:"Nolvadex",c:"med",g:"Antiestrógeno",lvl:4,rid:"—",why:"Reduce la producción y falta seguridad; se evita.",watch:"Valoración oncológica.",alt:""},
+{n:"Rabeprazol",aka:"Pariet",c:"med",g:"Protector gástrico (IBP)",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Lansoprazol",aka:"",c:"med",g:"Protector gástrico (IBP)",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Sucralfato",aka:"Carafate",c:"med",g:"Protector gástrico",lvl:1,rid:"—",why:"No se absorbe; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Trimebutina",aka:"Debridat",c:"med",g:"Antiespasmódico digestivo",lvl:2,rid:"—",why:"Datos limitados; uso ocasional probablemente compatible.",watch:"—",alt:"Butilhioscina."},
+{n:"Mebeverina",aka:"",c:"med",g:"Antiespasmódico digestivo",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:""},
+{n:"Racecadotrilo",aka:"Hidrasec",c:"med",g:"Antidiarreico",lvl:2,rid:"—",why:"Probablemente compatible.",watch:"—",alt:"Sales de rehidratación."},
+{n:"Difenoxilato/atropina",aka:"Lomotil",c:"med",g:"Antidiarreico",lvl:3,rid:"—",why:"Se prefiere evitar (opioide + atropina).",watch:"Somnolencia del bebé.",alt:"Loperamida, suero oral."},
+{n:"Bismuto subsalicilato",aka:"Pepto-Bismol",c:"med",g:"Antidiarreico",lvl:3,rid:"—",why:"Contiene salicilato; se prefiere evitar.",watch:"—",alt:"Loperamida, suero oral."},
+{n:"Polietilenglicol",aka:"Miralax, Nulytely",c:"med",g:"Laxante osmótico",lvl:1,rid:"—",why:"No se absorbe; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Dimenhidrinato",aka:"Dramamine",c:"med",g:"Antiemético / mareo",lvl:2,rid:"—",why:"Uso ocasional compatible; sedante.",watch:"Somnolencia; en exceso puede reducir la leche.",alt:"Meclizina."},
+{n:"Meclizina",aka:"Bonadoxina",c:"med",g:"Antiemético / mareo",lvl:2,rid:"—",why:"Uso ocasional probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Prometazina",aka:"Fenergan",c:"med",g:"Antihistamínico sedante",lvl:3,rid:"—",why:"Se prefiere evitar (sedación/apnea en el bebé).",watch:"Somnolencia marcada, pausas respiratorias.",alt:"Loratadina, cetirizina."},
+{n:"Doxilamina/piridoxina",aka:"Bendectin, Cariban",c:"med",g:"Antiemético (náusea)",lvl:2,rid:"—",why:"Uso ocasional probablemente compatible; sedante.",watch:"Somnolencia del bebé.",alt:""},
+{n:"Levocetirizina",aka:"Xuzal",c:"med",g:"Antihistamínico",lvl:1,rid:"—",why:"Compatible; poco sedante.",watch:"Ninguno relevante.",alt:""},
+{n:"Ebastina",aka:"Ebastel",c:"med",g:"Antihistamínico",lvl:1,rid:"—",why:"Probablemente compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Bilastina",aka:"Bilaxten",c:"med",g:"Antihistamínico",lvl:1,rid:"—",why:"Probablemente compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Rupatadina",aka:"Rupafin",c:"med",g:"Antihistamínico",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:"Loratadina, cetirizina."},
+{n:"Ketotifeno",aka:"Zaditen",c:"med",g:"Antihistamínico",lvl:2,rid:"—",why:"Uso ocasional; puede dar somnolencia.",watch:"Somnolencia.",alt:""},
+{n:"Fluticasona (inhalada/nasal)",aka:"Flixotide, Flixonase",c:"med",g:"Corticoide inhalado/nasal",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Mometasona (nasal)",aka:"Nasonex",c:"med",g:"Corticoide nasal",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Formoterol",aka:"",c:"med",g:"Broncodilatador inhalado",lvl:1,rid:"—",why:"Inhalado; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Salmeterol",aka:"",c:"med",g:"Broncodilatador inhalado",lvl:1,rid:"—",why:"Inhalado; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Ipratropio",aka:"Atrovent",c:"med",g:"Broncodilatador inhalado",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Tiotropio",aka:"Spiriva",c:"med",g:"Broncodilatador inhalado",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Teofilina",aka:"",c:"med",g:"Broncodilatador oral",lvl:2,rid:"—",why:"Compatible con vigilancia.",watch:"Irritabilidad, insomnio del bebé.",alt:""},
+{n:"N-acetilcisteína",aka:"Fluimucil, Mucomyst",c:"med",g:"Mucolítico",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:""},
+{n:"Bromhexina",aka:"Bisolvon",c:"med",g:"Mucolítico",lvl:2,rid:"—",why:"Datos limitados; uso ocasional probablemente compatible.",watch:"—",alt:""},
+{n:"Oximetazolina (nasal)",aka:"Afrin, Iliadin",c:"med",g:"Descongestivo nasal",lvl:2,rid:"—",why:"Uso corto local; poco paso.",watch:"No uses más de 3–5 días; puede reducir leche si abusas.",alt:"Suero fisiológico nasal."},
+{n:"Fenilefrina",aka:"",c:"med",g:"Descongestivo",lvl:2,rid:"—",why:"Poco paso oral; puede reducir la leche.",watch:"Baja de producción posible.",alt:"Suero nasal."},
+{n:"Propofol",aka:"Diprivan",c:"med",g:"Anestésico",lvl:1,rid:"—",why:"Compatible; puedes amamantar al despertar.",watch:"Ninguno relevante.",alt:""},
+{n:"Midazolam",aka:"Dormicum",c:"med",g:"Sedante (benzodiacepina)",lvl:1,rid:"—",why:"Dosis única para procedimientos; compatible al despertar.",watch:"Somnolencia si dosis repetidas.",alt:""},
+{n:"Fentanilo",aka:"",c:"med",g:"Opioide (anestesia)",lvl:1,rid:"—",why:"Dosis única compatible; corta duración.",watch:"Somnolencia si dosis altas.",alt:""},
+{n:"Ketamina",aka:"Ketalar",c:"med",g:"Anestésico",lvl:2,rid:"—",why:"Dosis única probablemente compatible.",watch:"Somnolencia.",alt:""},
+{n:"Bupivacaína",aka:"",c:"med",g:"Anestésico local/epidural",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Articaína",aka:"",c:"med",g:"Anestésico dental",lvl:1,rid:"—",why:"Compatible; amamanta normal tras el dentista.",watch:"Ninguno relevante.",alt:""},
+{n:"Óxido nitroso",aka:"",c:"med",g:"Anestésico/analgésico",lvl:1,rid:"—",why:"Se elimina rápido; compatible al terminar.",watch:"Ninguno relevante.",alt:""},
+{n:"Contraste yodado",aka:"medios de contraste radiológico",c:"med",g:"Contraste de imagen",lvl:1,rid:"—",why:"Compatible; no es necesario suspender la lactancia.",watch:"Ninguno relevante.",alt:""},
+{n:"Gadolinio",aka:"contraste de resonancia",c:"med",g:"Contraste de imagen",lvl:1,rid:"—",why:"Paso mínimo; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Corticoide tópico",aka:"hidrocortisona/betametasona en crema",c:"med",g:"Dermatológico tópico",lvl:1,rid:"—",why:"Compatible; en el pecho, limpia antes de amamantar.",watch:"Aplica poca cantidad; no en el pezón antes de dar.",alt:""},
+{n:"Permetrina",aka:"Novo-Herklin, Scabisan",c:"med",g:"Antisárnico/piojos (tópico)",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Adapaleno",aka:"Differin",c:"med",g:"Acné (retinoide tópico)",lvl:1,rid:"—",why:"Tópico; compatible. Evita la areola.",watch:"No aplicar en el pecho.",alt:""},
+{n:"Tretinoína tópica",aka:"Retin-A",c:"med",g:"Acné (retinoide tópico)",lvl:1,rid:"—",why:"Tópico; compatible. Evita la areola.",watch:"No aplicar en el pecho.",alt:""},
+{n:"Peróxido de benzoilo",aka:"Benzac",c:"med",g:"Acné (tópico)",lvl:1,rid:"—",why:"Tópico; compatible.",watch:"Evita el pezón.",alt:""},
+{n:"Ácido azelaico",aka:"Finacea, Azelac",c:"med",g:"Dermatológico tópico",lvl:1,rid:"—",why:"Tópico; compatible.",watch:"—",alt:""},
+{n:"Clindamicina tópica",aka:"Dalacin T",c:"med",g:"Acné (tópico)",lvl:1,rid:"—",why:"Tópico; compatible.",watch:"—",alt:""},
+{n:"Calcipotriol",aka:"Daivonex",c:"med",g:"Psoriasis (tópico)",lvl:2,rid:"—",why:"Tópico; usar en poca superficie.",watch:"Evita el pecho.",alt:""},
+{n:"Ácido fólico",aka:"folato",c:"med",g:"Vitamina",lvl:1,rid:"—",why:"Recomendable; compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Sulfato ferroso",aka:"hierro",c:"med",g:"Suplemento (hierro)",lvl:1,rid:"—",why:"Compatible; útil si hay anemia.",watch:"Estreñimiento materno.",alt:""},
+{n:"Calcio",aka:"carbonato/citrato de calcio",c:"med",g:"Suplemento",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Vitamina D",aka:"colecalciferol",c:"med",g:"Vitamina",lvl:1,rid:"—",why:"Compatible; a veces se suplementa al bebé aparte.",watch:"Ninguno relevante.",alt:""},
+{n:"Vitamina B12",aka:"cianocobalamina",c:"med",g:"Vitamina",lvl:1,rid:"—",why:"Compatible; importante en dietas veganas.",watch:"Ninguno relevante.",alt:""},
+{n:"Complejo B",aka:"",c:"med",g:"Vitaminas",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Vitamina C",aka:"ácido ascórbico",c:"med",g:"Vitamina",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Omega-3",aka:"aceite de pescado, DHA",c:"med",g:"Suplemento",lvl:1,rid:"—",why:"Compatible; aporta DHA.",watch:"Ninguno relevante.",alt:""},
+{n:"Magnesio",aka:"",c:"med",g:"Suplemento",lvl:1,rid:"—",why:"Compatible.",watch:"Ninguno relevante.",alt:""},
+{n:"Multivitamínico prenatal",aka:"",c:"med",g:"Suplemento",lvl:1,rid:"—",why:"Compatible; recomendable en lactancia.",watch:"Ninguno relevante.",alt:""},
+{n:"Sildenafil",aka:"Viagra, Revatio",c:"med",g:"Vasodilatador",lvl:2,rid:"—",why:"Datos limitados; probablemente compatible.",watch:"—",alt:""},
+{n:"Escopolamina (parche)",aka:"Transderm",c:"med",g:"Antivertiginoso/antiespasmódico",lvl:2,rid:"—",why:"Uso puntual probablemente compatible.",watch:"Somnolencia; sequedad.",alt:""},
+{n:"Cetirizina/pseudoefedrina",aka:"antigripal combinado",c:"med",g:"Antigripal combinado",lvl:3,rid:"—",why:"La pseudoefedrina puede reducir la leche.",watch:"Baja de producción.",alt:"Solo antihistamínico + suero nasal."},
+{n:"Ortiga",aka:"nettle",c:"herb",g:"Planta / galactagogo popular",lvl:2,rid:"—",why:"Uso alimentario probablemente tolerado; datos escasos.",watch:"—",alt:""},
+{n:"Comino",aka:"cumin",c:"herb",g:"Condimento",lvl:1,rid:"—",why:"En cantidades culinarias, compatible.",watch:"—",alt:""},
+{n:"Ajo",aka:"garlic",c:"herb",g:"Condimento",lvl:1,rid:"—",why:"Compatible; puede cambiar el sabor de la leche.",watch:"El bebé puede notar el sabor.",alt:""},
+{n:"Canela",aka:"cinnamon",c:"herb",g:"Condimento",lvl:1,rid:"—",why:"Culinaria compatible; evita aceite esencial.",watch:"—",alt:""},
+{n:"Romero",aka:"rosemary",c:"herb",g:"Condimento",lvl:1,rid:"—",why:"Culinario compatible; evita aceite esencial.",watch:"—",alt:""},
+{n:"Cardamomo",aka:"",c:"herb",g:"Condimento",lvl:1,rid:"—",why:"Culinario compatible.",watch:"—",alt:""},
+{n:"Espino blanco",aka:"hawthorn",c:"herb",g:"Planta cardiaca",lvl:2,rid:"—",why:"Datos limitados; precaución.",watch:"—",alt:""},
+{n:"Melisa",aka:"toronjil, lemon balm",c:"herb",g:"Infusión relajante",lvl:2,rid:"—",why:"Uso ocasional probablemente tolerado.",watch:"—",alt:""},
+{n:"Pasiflora",aka:"passionflower",c:"herb",g:"Infusión relajante",lvl:2,rid:"—",why:"Datos limitados; uso ocasional con precaución.",watch:"Somnolencia.",alt:""},
+{n:"Sen (planta)",aka:"hoja sen",c:"herb",g:"Laxante (planta)",lvl:2,rid:"—",why:"Puede ablandar las heces del bebé.",watch:"Heces blandas del bebé.",alt:"Lactulosa, fibra."},
+{n:"Cola de caballo",aka:"horsetail",c:"herb",g:"Planta diurética",lvl:3,rid:"—",why:"Se desaconseja (diurético; puede reducir leche).",watch:"Baja de producción.",alt:""},
+{n:"Alcachofa",aka:"artichoke",c:"herb",g:"Planta digestiva",lvl:2,rid:"—",why:"Culinaria tolerada; extractos con precaución.",watch:"—",alt:""},
+{n:"Uña de gato",aka:"cat's claw",c:"herb",g:"Suplemento",lvl:3,rid:"—",why:"Datos escasos y efectos inmunes; se prefiere evitar.",watch:"—",alt:""},
+{n:"Guaraná",aka:"",c:"herb",g:"Estimulante (cafeína)",lvl:2,rid:"—",why:"Aporta cafeína; con moderación.",watch:"Irritabilidad del bebé si hay exceso.",alt:""},
+{n:"Maca",aka:"",c:"herb",g:"Suplemento",lvl:2,rid:"—",why:"Datos limitados; uso alimentario con moderación.",watch:"—",alt:""},
+{n:"Ashwagandha",aka:"withania",c:"herb",g:"Suplemento",lvl:3,rid:"—",why:"Efectos hormonales/sedantes; datos escasos; se prefiere evitar.",watch:"—",alt:""},
+{n:"Cardo bendito",aka:"blessed thistle",c:"herb",g:"Galactagogo popular",lvl:2,rid:"—",why:"Usado para leche; evidencia débil.",watch:"Molestias digestivas.",alt:""},
+{n:"Fenogreco + cardo (galactagogo)",aka:"mezclas 'pro-leche'",c:"herb",g:"Galactagogos populares",lvl:2,rid:"—",why:"Evidencia débil; el mejor estímulo es la succión frecuente.",watch:"Vigila glucosa (fenogreco).",alt:"Vaciado frecuente del pecho."},
+{n:"Belladonna (homeopática)",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada; no usar la planta sin diluir.",alt:""},
+{n:"Bryonia (homeopática)",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Nux vomica (homeopática)",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada; la sustancia sin diluir es tóxica.",alt:""},
+{n:"Urtica urens (homeopática)",aka:"para 'producción de leche'",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Phytolacca (homeopática)",aka:"para grietas/mastitis",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta sin riesgo; en tintura, trátala como planta.",watch:"Verifica dilución; sin eficacia demostrada.",alt:""}
+,
+{n:"Ignatia amara",aka:"para el ánimo / duelo",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Sepia",aka:"posparto, ánimo",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Staphysagria",aka:"cicatrización de episiotomía (posparto)",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Bellis perennis",aka:"moretones del posparto",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Calendula (homeopática)",aka:"grietas del pezón; también en crema tópica",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida sin riesgo; la crema tópica de caléndula es compatible.",watch:"Si usas crema en el pezón, límpialo antes de amamantar.",alt:""},
+{n:"Arsenicum album",aka:"digestivo",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta sin riesgo; su origen (arsénico) exige cuidado en bajas diluciones.",watch:"Sin eficacia demostrada; en tintura madre o baja dilución, trátala como la sustancia de origen.",alt:""},
+{n:"Nux vomica",aka:"digestivo",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada; la planta sin diluir es tóxica.",alt:""},
+{n:"Lycopodium",aka:"digestivo",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Sulphur",aka:"piel",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Natrum muriaticum",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Gelsemium",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Aconitum napellus",aka:"inicio de fiebre/susto",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta sin riesgo; la planta es muy tóxica.",watch:"Sin eficacia demostrada; en tintura madre o baja dilución, trátala como la sustancia de origen.",alt:""},
+{n:"Apis mellifica",aka:"picaduras/edema",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Rhus toxicodendron",aka:"dolor musculoesquelético",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Hepar sulphuris",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Mercurius solubilis",aka:"",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta sin riesgo; evita bajas diluciones (mercurio).",watch:"Sin eficacia demostrada; en tintura madre o baja dilución, trátala como la sustancia de origen.",alt:""},
+{n:"Ipecacuanha",aka:"náusea/vómito",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Cocculus indicus",aka:"mareo por movimiento",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Podophyllum",aka:"diarrea",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Colocynthis",aka:"cólico",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Magnesia phosphorica",aka:"cólico/calambres",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Dioscorea villosa",aka:"cólico",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Borax",aka:"aftas / algodoncillo del bebé",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Aethusa cynapium",aka:"intolerancia a la leche (bebé)",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Lac caninum",aka:"'producción de leche'",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta sin riesgo.",watch:"Sin eficacia demostrada; el mejor estímulo es la succión frecuente.",alt:""},
+{n:"Agnus castus (homeopático)",aka:"'producción de leche' / hormonal",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta sin riesgo; en tintura afecta la prolactina.",watch:"Sin eficacia demostrada; en baja dilución/tintura, precaución hormonal.",alt:""},
+{n:"Ferrum phosphoricum",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Calcarea phosphorica",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Kali bichromicum",aka:"secreciones/moco",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Spongia tosta",aka:"tos",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Drosera",aka:"tos",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Antimonium tartaricum",aka:"tos con flema",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Euphrasia",aka:"ojos irritados",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Allium cepa",aka:"resfriado/rinorrea",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"China officinalis",aka:"debilidad/pérdida de líquidos",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Carbo vegetabilis",aka:"digestivo/gases",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Cina",aka:"'lombrices' (niños)",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada; la parasitosis requiere tratamiento real.",alt:""},
+{n:"Hypericum (homeopático)",aka:"dolor nervioso",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluido sin riesgo (distinto de la planta hierba de San Juan).",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Ruta graveolens (homeopática)",aka:"tendones/golpes",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida sin riesgo (la planta ruda sí es tóxica).",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Symphytum (homeopático)",aka:"huesos/golpes",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Graphites",aka:"piel/eczema",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Thuja occidentalis",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Causticum",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Cuprum metallicum",aka:"calambres",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"Diluida, sin riesgo esperado.",watch:"Sin eficacia demostrada.",alt:""},
+{n:"Veratrum album",aka:"",c:"homeo",g:"Homeopatía",lvl:2,rid:"—",why:"En dilución alta sin riesgo; la planta es tóxica.",watch:"Sin eficacia demostrada; en tintura madre o baja dilución, trátala como la sustancia de origen.",alt:""},
+{n:"Lachesis",aka:"",c:"homeo",g:"Homeopatía",lvl:1,rid:"—",why:"En dilución alta sin riesgo (origen: veneno de serpiente).",watch:"Sin eficacia demostrada.",alt:""}
+
+];
+
+/* ================= lógica ================= */
+const $=(s)=>document.querySelector(s);
+const norm=(s)=>(s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+const escapeHtml=(s)=>(s||"").replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+let cat="all", q="", rawQ="";
+
+function counts(){
+  const by={all:D.length,med:0,herb:0,homeo:0};
+  D.forEach(d=>by[d.c]++);
+  $("#n-all").textContent=by.all; $("#n-med").textContent=by.med;
+  $("#n-herb").textContent=by.herb; $("#n-homeo").textContent=by.homeo;
+}
+function match(d){
+  if(cat!=="all"&&d.c!==cat)return false;
+  if(!q)return true;
+  const hay=norm(d.n+" "+d.aka+" "+d.g);
+  return q.split(/\s+/).every(t=>hay.includes(t));
+}
+function render(){
+  const items=D.filter(match).sort((a,b)=> a.lvl-b.lvl || a.n.localeCompare(b.n,'es'));
+  const list=$("#list");
+  $("#count").textContent = items.length ? `${items.length} resultado${items.length>1?"s":""}` : "";
+  if(!items.length){
+    list.innerHTML=`<div class="empty"><b>No está en la lista</b>Prueba con otro nombre (marca o genérico), revisa la ortografía, o usa el asistente. Recuerda <b style="display:inline;font-size:inherit">consultar el criterio médico</b> antes de decidir.</div>`;
+  }else{
+    list.innerHTML=items.map((d,i)=>{
+      const L=LVL[d.lvl];
+      return `<article class="card l${d.lvl}" data-i="${D.indexOf(d)}" style="animation-delay:${Math.min(i*18,220)}ms" tabindex="0" role="button">
+        <div class="row">
+          <div style="min-width:0">
+            <h3>${d.n}</h3>
+            ${d.aka?`<div class="aka">${d.aka}</div>`:""}
+          </div>
+          <div class="badge"><span class="lvl">${L.w}</span><span class="sub">${L.s}</span></div>
+        </div>
+        <div class="grp">${d.g}</div>
+      </article>`;
+    }).join("");
+  }
+  const ai=$("#askAI");
+  if(rawQ.trim()){
+    ai.style.display="block";
+    ai.innerHTML=`<button class="askbtn" id="askBtn">✨ Consultar el asistente sobre “${escapeHtml(rawQ.trim())}”<small>Sugerencias del catálogo y orientación por tipo · funciona sin conexión</small></button>`;
+  }else ai.style.display="none";
+}
+function openDetail(d){
+  const L=LVL[d.lvl];
+  $("#m-name").textContent=d.n;
+  $("#m-aka").textContent=d.aka||"";
+  $("#m-aka").style.display=d.aka?"block":"none";
+  const f=(lab,val,mono)=> val?`<div class="field"><div class="lab">${lab}</div><div class="val ${mono?'mono':''}">${val}</div></div>`:"";
+  $("#m-bd").innerHTML=`
+    <div class="m-verdict l${d.lvl}">
+      <div class="big"><span>${d.lvl}</span></div>
+      <div class="txt"><b>${L.w}</b><small>${L.s} durante la lactancia</small></div>
+    </div>
+    ${f("Grupo",d.g)}
+    ${f("Por qué",d.why)}
+    ${d.rid&&d.rid!=="—"?f("Dosis que llega al bebé (aprox.)",d.rid+" de la dosis materna ajustada",true):""}
+    ${f("Qué vigilar en el bebé",d.watch)}
+    ${d.alt?f("Alternativas a considerar",d.alt):""}
+    <div class="m-safe">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+      <div><b>Consulta siempre el criterio médico antes de tomar una decisión.</b> Esta ficha es orientativa; tu médico o pediatra conoce tu caso, la dosis y el estado de tu bebé. Ante la duda, no suspendas la lactancia sin consultar.</div>
+    </div>`;
+  $("#modal").classList.add("open");
+  document.body.style.overflow="hidden";
+}
+function closeModal(){ $("#modal").classList.remove("open"); $("#about").classList.remove("open"); $("#ai-modal").classList.remove("open"); document.body.style.overflow=""; }
+
+/* ---- consulta con IA para casos no listados ---- */
+function safeNote(){
+  return `<div class="m-safe" style="margin-top:16px">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <div>Respuesta generada por IA con fines <b>orientativos</b>; puede contener errores. <b>Consulta siempre el criterio médico antes de tomar una decisión.</b></div></div>`;
+}
+/* Asistente local (sin conexión ni API): sugerencias del catálogo + orientación por tipo de fármaco */
+function levenshtein(a,b){
+  const m=a.length,n=b.length; if(!m)return n; if(!n)return m;
+  const dp=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);
+  for(let j=0;j<=n;j++)dp[0][j]=j;
+  for(let i=1;i<=m;i++)for(let j=1;j<=n;j++){
+    dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
+  }
+  return dp[m][n];
+}
+function inferClass(t){
+  const R=[
+    [/cilina$/,"Penicilinas",1,"Las penicilinas suelen ser compatibles; vigila diarrea leve o candidiasis en el bebé."],
+    [/(cef|cefa|cefu|ceft)/,"Cefalosporinas",1,"Las cefalosporinas suelen ser compatibles; diarrea leve ocasional."],
+    [/(oxacino|floxacino)$/,"Quinolonas",2,"Compatibles con vigilancia; se prefieren otras opciones cuando existen."],
+    [/(ciclina)$/,"Tetraciclinas",2,"Ciclos cortos compatibles; evita el uso prolongado."],
+    [/(micina|mecina)$/,"Antibióticos (…micina)",2,"Depende del fármaco; muchos son compatibles con vigilancia digestiva."],
+    [/prazol$/,"Protectores gástricos (IBP)",1,"Los 'prazol' suelen ser compatibles."],
+    [/tidina$/,"Antiácidos anti-H2",1,"Generalmente compatibles (se prefiere famotidina)."],
+    [/parina$/,"Heparinas",1,"No pasan a la leche de forma relevante; compatibles."],
+    [/statina$/,"Estatinas (colesterol)",3,"Se suelen evitar durante la lactancia."],
+    [/(sartan|sartán)$/,"Antihipertensivos ARA-II",3,"Datos escasos; se prefieren metildopa, labetalol o nifedipino."],
+    [/pril$/,"Antihipertensivos IECA",2,"Enalapril/captopril son los preferidos; precaución en recién nacidos."],
+    [/dipino$/,"Antihipertensivos (calcio)",1,"Suelen ser compatibles (p. ej. nifedipino)."],
+    [/olol$/,"Beta-bloqueadores",2,"Varía: propranolol/labetalol son preferidos; evita atenolol."],
+    [/mab$/,"Anticuerpos biológicos",1,"Moléculas grandes; paso mínimo a la leche, suelen ser compatibles."],
+    [/(triptan|triptán)$/,"Triptanes (migraña)",2,"Sumatriptán es de elección; corta duración."],
+    [/(azepam|azolam)$/,"Benzodiacepinas",3,"Se prefieren dosis únicas y de vida media corta; vigila somnolencia."],
+    [/(caina|caína)$/,"Anestésicos locales",1,"Compatibles; puedes amamantar tras procedimientos."],
+    [/conazol$/,"Antifúngicos azoles",2,"Fluconazol es compatible; ketoconazol oral se evita."],
+    [/vir$/,"Antivirales",2,"Muchos son compatibles (aciclovir/valaciclovir); depende del fármaco."],
+    [/setron$/,"Antieméticos (…setrón)",1,"Ondansetrón es compatible."],
+    [/(prednis|cortico|metilpred|dexameta|betameta)/,"Corticoides",1,"Compatibles; a dosis altas algunos esperan 2–4 h para amamantar."],
+    [/(vitamin|folico|folato|hierro|calcio|omega)/,"Vitaminas/suplementos",1,"Generalmente compatibles y a menudo recomendados."]
+  ];
+  for(const [re,name,lvl,why] of R){ if(re.test(t)) return {name,lvl,why}; }
+  return null;
+}
+function safeNote(){
+  return `<div class="m-safe" style="margin-top:16px">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 11c0 5.5-7 10-7 10z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+    <div>Orientación general con fines <b>educativos</b>; no es una evaluación del caso concreto. <b>Consulta siempre el criterio médico antes de tomar una decisión.</b></div></div>`;
+}
+function aiAsk(){
+  const term=$("#q").value.trim(); if(!term)return;
+  const t=norm(term);
+  $("#ai-term").textContent="“"+term+"”";
+  const scored=D.map(d=>{
+    const hay=norm(d.n+" "+d.aka); let s=0;
+    if(hay.includes(t)) s=100;
+    else{
+      const words=norm(d.n+" "+d.aka).split(/[,\s]+/).filter(Boolean);
+      words.forEach(w=>{ if(w.length>2&&(w.startsWith(t)||t.startsWith(w))) s=Math.max(s,72);
+        else if(w.length>3){ const dist=levenshtein(w,t); if(dist<=2) s=Math.max(s,62-dist*4); } });
+    }
+    return {d,s};
+  }).filter(x=>x.s>=55).sort((a,b)=>b.s-a.s).slice(0,5);
+  const cls=inferClass(t);
+  let html="";
+  if(cls){
+    html+=`<div class="m-verdict l${cls.lvl}"><div class="big"><span>${cls.lvl}</span></div>
+      <div class="txt"><b>${LVL[cls.lvl].w}</b><small>Orientación por tipo: ${cls.name}</small></div></div>
+      <div class="field"><div class="lab">Nota general</div><div class="val">${cls.why}</div></div>`;
+  }
+  if(scored.length){
+    html+=`<div class="field"><div class="lab">${cls?'Fichas relacionadas':'Quizá te refieres a'}</div>
+      ${scored.map(x=>`<button class="sugg" data-i="${D.indexOf(x.d)}"><span>${x.d.n}</span><small>${LVL[x.d.lvl].w}</small></button>`).join("")}</div>`;
+  }
+  if(!scored.length && !cls){
+    html+=`<div class="field"><div class="val">No encontramos “${escapeHtml(term)}” en el catálogo ni reconocimos su tipo. Revisa la ortografía o busca por el nombre <b>genérico</b>.</div></div>
+      <div class="field"><div class="lab">Mientras tanto</div><div class="val">En general se prefieren medicamentos <b>bien estudiados</b>, a la <b>dosis mínima eficaz</b> y por el <b>menor tiempo</b>, vigilando al bebé. Muchas veces existe una alternativa compatible.</div></div>`;
+  }
+  html+=`<div class="field"><div class="lab">Para confirmar</div><div class="val">Consulta a tu médico o pediatra. Fuentes útiles: <b>e‑lactancia.org</b> y <b>LactMed (NIH)</b>.</div></div>`;
+  html+=safeNote();
+  $("#ai-out").innerHTML=html;
+  $("#ai-modal").classList.add("open"); document.body.style.overflow="hidden";
+}
+
+/* eventos */
+$("#list").addEventListener("click",e=>{const c=e.target.closest(".card");if(c)openDetail(D[+c.dataset.i]);});
+$("#list").addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.closest(".card")){e.preventDefault();openDetail(D[+e.target.closest(".card").dataset.i]);}});
+$("#q").addEventListener("input",e=>{rawQ=e.target.value;q=norm(e.target.value.trim());$("#clr").classList.toggle("on",!!e.target.value);render();});
+$("#clr").addEventListener("click",()=>{$("#q").value="";q="";rawQ="";$("#clr").classList.remove("on");render();$("#q").focus();});
+$("#filters").addEventListener("click",e=>{const b=e.target.closest(".chip");if(!b)return;
+  cat=b.dataset.cat;[...document.querySelectorAll(".chip")].forEach(c=>c.classList.toggle("on",c===b));render();});
+$("#m-x").addEventListener("click",closeModal);
+$("#a-x").addEventListener("click",closeModal);
+$("#ai-close").addEventListener("click",closeModal);
+$("#askAI").addEventListener("click",e=>{if(e.target.closest("#askBtn"))aiAsk();});
+$("#ai-out").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b){$("#ai-modal").classList.remove("open");openDetail(D[+b.dataset.i]);}});
+$("#openAbout").addEventListener("click",()=>{$("#about").classList.add("open");document.body.style.overflow="hidden";});
+[$("#modal"),$("#about"),$("#ai-modal")].forEach(m=>m.addEventListener("click",e=>{if(e.target===m)closeModal();}));
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeModal();});
+
+/* PWA */
+let deferred=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferred=e;$("#install").style.display="inline-flex";});
+$("#install").addEventListener("click",async()=>{if(deferred){deferred.prompt();deferred=null;$("#install").style.display="none";}});
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));}
+
+counts(); render();
+(function(){var y=document.getElementById("yr"); if(y)y.textContent=new Date().getFullYear();})();
+</script>
+</body>
+</html>
